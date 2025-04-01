@@ -1,0 +1,135 @@
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    height: 100vh;
+    background: #FFFFFF;
+    position: fixed;
+    left: 0;
+    top: 0;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 16px 0;
+}
+
+.logo-container {
+    padding: 20px 20px;
+    margin-bottom: 24px;
+}
+
+.logo {
+    width: 104px;
+    height: 48px;
+}
+
+.menu-main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+}
+
+.menu-item {
+    width: 100%;
+}
+
+.menu-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: #1119281c;
+    margin-bottom: 4px;
+}
+
+.menu-header-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.menu-icon {
+    width: 20px;
+    height: 20px;
+    color: #111928;
+}
+
+.menu-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: #111928;
+    text-decoration: none;
+}
+
+.submenu {
+    padding-left: 0px;
+    margin-top: 4px;
+    display: block;
+}
+
+.submenu-item {
+    padding: 8px 0;
+}
+
+.submenu-item a {
+    color: #111928;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding-left: 25px;
+}
+
+/* Ajuste para o conteúdo principal */
+.page-wrapper {
+    margin-left: 250px;
+    padding: 20px;
+}
+
+.sidebar-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0;
+    gap: 24px;
+    margin: 0 auto;
+    width: 250px;
+    height: 638px;
+}
+
+.chevron-icon {
+    width: 28px;
+    height: 28px;
+}
+
+/* Ícones específicos */
+.icon-chevron-up {
+    position: absolute;
+    left: 20.83%;
+    right: 20.84%;
+    top: 33.33%;
+    bottom: 33.33%;
+    background: #111928;
+}
+
+/* Animação para o dropdown */
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.menu-item.active .submenu {
+    max-height: 500px;
+} 
+
+.submenu .submenu-item:hover {
+    background-color: #1119280d;
+}

@@ -1,0 +1,56 @@
+/* Dark theme customization */
+:root {
+    --dark-primary: #111928;
+    --dark-primary-hover: #1a2438;
+}
+
+.btn-primary {
+    background-color: var(--dark-primary) !important;
+    border-color: var(--dark-primary) !important;
+}
+
+.btn-primary:hover, 
+.btn-primary:focus {
+    background-color: var(--dark-primary-hover) !important;
+    border-color: var(--dark-primary-hover) !important;
+}
+
+.card {
+    border: none !important;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px !important;
+    border-radius: 4px !important;
+}
+
+.form-control {
+    border: 1px solid #e5e7eb !important;
+}
+
+.form-control:focus {
+    border-color: var(--dark-primary) !important;
+    box-shadow: none !important;
+}
+
+a {
+    color: var(--dark-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--dark-primary-hover);
+}
+
+.auth-form-wrapper {
+    background-color: #ffffff;
+    padding: 2rem !important;
+}
+
+.form-label {
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #111928;
+}
+
+.auth-page {
+    background-color: #f9fafb;
+} 
