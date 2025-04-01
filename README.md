@@ -74,11 +74,9 @@ http://localhost:8000
 - Cadastro de veículos
 - Cadastro de motoristas
 - Planejamento de trajetos
+- 
 - Acompanhamento em tempo real
 - Relatórios e estatísticas
 
 ## Suporte
 Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento.
-
-## Licença
-Este projeto está sob a licença MIT.
