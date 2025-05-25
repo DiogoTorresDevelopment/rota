@@ -387,49 +387,12 @@ document.addEventListener('DOMContentLoaded', function() {
     tabsMobile.addEventListener('change', (e) => switchTab(e.target.value));
 
     // Função para atualizar formulário
-    async function updateDriver(e) {
-        e.preventDefault();
+    function updateDriver(e) {
+        // Remove o preventDefault para permitir o envio normal do formulário
+        // e.preventDefault();
         
-        const form = document.getElementById('driver-form');
-        const formData = new FormData(form);
-        
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                },
-                body: formData
-            });
-
-            const data = await response.json();
-
-            if (response.ok && data.success) {
-                await Swal.fire({
-                    title: 'Sucesso!',
-                    text: data.message,
-                    icon: 'success',
-                    confirmButtonText: 'Ok'
-                });
-                
-                // Redireciona para a listagem
-                window.location.href = '{{ route("drivers.index") }}';
-            } else {
-                let errorMessage = data.message;
-                if (data.errors) {
-                    errorMessage = Object.values(data.errors).flat().join('\n');
-                }
-                throw new Error(errorMessage);
-            }
-        } catch (error) {
-            await Swal.fire({
-                title: 'Erro!',
-                text: error.message,
-                icon: 'error',
-                confirmButtonText: 'Ok'
-            });
-        }
+        // Remove todo o código AJAX e deixa o formulário ser enviado normalmente
+        return true;
     }
 
     // Adiciona o evento de submit no formulário

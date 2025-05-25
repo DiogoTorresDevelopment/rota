@@ -90,18 +90,29 @@ class DriverController extends Controller
                 }
             }
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Motorista atualizado com sucesso!',
-                'driver' => $driver
-            ]);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Motorista atualizado com sucesso!',
+                    'driver' => $driver
+                ]);
+            }
+
+            return redirect()->route('drivers.index')
+                ->with('success', 'Motorista atualizado com sucesso!');
 
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao atualizar os dados',
-                'errors' => ['general' => [$e->getMessage()]]
-            ], 422);
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erro ao atualizar os dados',
+                    'errors' => ['general' => [$e->getMessage()]]
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Erro ao atualizar os dados: ' . $e->getMessage()]);
         }
     }
 

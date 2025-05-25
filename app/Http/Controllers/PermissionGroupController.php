@@ -14,6 +14,12 @@ class PermissionGroupController extends Controller
         return view('permissions.index', compact('groups'));
     }
 
+    public function show($id)
+    {
+        $group = PermissionGroup::with('permissions')->findOrFail($id);
+        return view('permissions.show', compact('group'));
+    }
+
     public function create()
     {
         $managementPermissions = Permission::where('type', 'management')->get();

@@ -50,7 +50,7 @@
                    id="name" 
                    name="name" 
                    value="{{ old('name') }}"
-                   placeholder="Digite o nome">
+                   required>
             @error('name')
               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
@@ -66,7 +66,7 @@
                    id="email" 
                    name="email" 
                    value="{{ old('email') }}"
-                   placeholder="Digite o e-mail">
+                   required>
             @error('email')
               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
@@ -80,26 +80,57 @@
             <input type="password" 
                    class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('password') border-red-500 @enderror" 
                    id="password" 
-                   name="password">
+                   name="password"
+                   required>
             @error('password')
               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
           </div>
 
-          <!-- Status -->
+          <!-- Confirmar Senha -->
           <div>
-            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
-              Status
+            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+              Confirmar Senha
             </label>
-            <select class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('status') border-red-500 @enderror" 
-                    id="status" 
-                    name="status">
-              <option value="1" {{ old('status') == '1' ? 'selected' : '' }}>Ativo</option>
-              <option value="0" {{ old('status') == '0' ? 'selected' : '' }}>Inativo</option>
-            </select>
-            @error('status')
-              <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+            <input type="password" 
+                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                   id="password_confirmation" 
+                   name="password_confirmation"
+                   required>
+          </div>
+        </div>
+
+        <!-- Grupos de Permissão -->
+        <div class="mb-3">
+          <label for="permission_group" class="form-label">Grupo de Permissão</label>
+          <select class="form-select @error('permission_group') is-invalid @enderror" 
+                  id="permission_group" 
+                  name="permission_group">
+            <option value="">Selecione um grupo</option>
+            @foreach($permissionGroups as $group)
+              <option value="{{ $group->id }}" {{ old('permission_group') == $group->id ? 'selected' : '' }}>
+                {{ $group->name }}
+              </option>
+            @endforeach
+          </select>
+          @error('permission_group')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+          <small class="text-muted">Selecione o grupo de permissão do usuário.</small>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-6">
+          <div class="flex items-center">
+            <input type="checkbox" 
+                   id="status" 
+                   name="status" 
+                   value="1" 
+                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                   {{ old('status', true) ? 'checked' : '' }}>
+            <label for="status" class="ml-2 text-sm font-medium text-gray-700">
+              Ativo
+            </label>
           </div>
         </div>
 
@@ -118,4 +149,20 @@
     </div>
   </div>
 </div>
-@endsection 
+@endsection
+
+@push('plugin-scripts')
+<script src="{{ asset('assets/plugins/select2/select2.min.js') }}"></script>
+@endpush
+
+@push('custom-scripts')
+<script>
+    $(document).ready(function() {
+        $('select[name="permission_groups"]').select2({
+            placeholder: "Selecione o grupo de permissão",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+@endpush 

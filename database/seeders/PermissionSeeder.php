@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Permission;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class PermissionSeeder extends Seeder
 {
@@ -16,58 +17,34 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        $permissions = [
-            // Permissões de Gerenciamento
-            [
-                'name' => 'Ver caminhões',
-                'description' => 'Visualizar lista de caminhões',
-                'type' => 'management'
-            ],
-            [
-                'name' => 'Gerenciar caminhões',
-                'description' => 'Adicionar, editar e remover caminhões',
-                'type' => 'management'
-            ],
-            [
-                'name' => 'Ver motoristas',
-                'description' => 'Visualizar lista de motoristas',
-                'type' => 'management'
-            ],
-            [
-                'name' => 'Gerenciar motoristas',
-                'description' => 'Adicionar, editar e remover motoristas',
-                'type' => 'management'
-            ],
-
-            // Permissões Operacionais
-            [
-                'name' => 'Ver rotas',
-                'description' => 'Visualizar rotas',
-                'type' => 'operational'
-            ],
-            [
-                'name' => 'Gerenciar rotas',
-                'description' => 'Adicionar, editar e remover rotas',
-                'type' => 'operational'
-            ],
-            [
-                'name' => 'Ver entregas',
-                'description' => 'Visualizar entregas',
-                'type' => 'operational'
-            ],
-            [
-                'name' => 'Gerenciar entregas',
-                'description' => 'Adicionar, editar e remover entregas',
-                'type' => 'operational'
-            ],
+        $modules = [
+            'users' => 'Usuários',
+            'drivers' => 'Motoristas',
+            'trucks' => 'Caminhões',
+            'routes' => 'Rotas',
+            'deliveries' => 'Entregas',
+            'permissions' => 'Permissões'
         ];
 
-        foreach ($permissions as $permission) {
-            Permission::create([
-                'name' => $permission['name'],
-                'slug' => Str::slug($permission['name']),
-                'description' => $permission['description'],
-                'type' => $permission['type']
+        foreach ($modules as $module => $name) {
+            // Permissão de visualização
+            DB::table('permissions')->insert([
+                'name' => "Ver {$name}",
+                'slug' => "{$module}.view",
+                'description' => "Visualizar lista de {$name}",
+                'type' => 'management',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]);
+
+            // Permissão de gerenciamento
+            DB::table('permissions')->insert([
+                'name' => "Gerenciar {$name}",
+                'slug' => "{$module}.manage",
+                'description' => "Adicionar, editar e remover {$name}",
+                'type' => 'management',
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
         }
     }

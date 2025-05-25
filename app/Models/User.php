@@ -26,4 +26,28 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'status' => 'boolean',
     ];
+
+    public function permissionGroups()
+    {
+        return $this->belongsToMany(PermissionGroup::class, 'user_has_permission_groups');
+    }
+
+    public function hasPermission($permissionSlug)
+    {
+        return $this->permissionGroups()
+            ->whereHas('permissions', function ($query) use ($permissionSlug) {
+                $query->where('slug', $permissionSlug);
+            })
+            ->exists();
+    }
+
+    public function getAllPermissions()
+    {
+        return $this->permissionGroups()
+            ->with('permissions')
+            ->get()
+            ->pluck('permissions')
+            ->flatten()
+            ->unique('id');
+    }
 } 

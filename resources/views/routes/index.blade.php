@@ -35,9 +35,10 @@
   <div class="flex justify-between items-center mb-6">
     <div>
       <h1 class="text-xl font-semibold text-gray-900">Rotas</h1>
-      <p class="text-sm text-gray-600">Cadastrar e gerenciar rotas</p>
+      <p class="text-sm text-gray-600">Gerencie e cadastre rotas</p>
     </div>
 
+    @if(hasPermission('routes.manage'))
     <a href="{{ route('routes.create') }}" 
        class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,6 +46,7 @@
       </svg>
       Adicionar
     </a>
+    @endif
   </div>
 
   <!-- Card principal -->
@@ -97,8 +99,8 @@
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 text-gray-600">{{ $route->id }}</td>
               <td class="px-6 py-4 text-gray-900">{{ $route->name }}</td>
-              <td class="px-6 py-4 text-gray-600">{{ $route->driver->name }}</td>
-              <td class="px-6 py-4 text-gray-600">{{ $route->truck->plate }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ optional($route->driver)->name ?? 'Motorista não encontrado' }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ optional($route->truck)->plate ?? 'Caminhão não encontrado' }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $route->start_date->format('d/m/Y') }}</td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
@@ -134,6 +136,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
+                @if(hasPermission('routes.view') || hasPermission('routes.manage'))
                 <button class="text-gray-400 hover:text-gray-600" data-dropdown-toggle="dropdown-{{ $route->id }}">
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
@@ -141,9 +144,22 @@
                 </button>
                 <div id="dropdown-{{ $route->id }}" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
                   <ul class="py-1">
+                    @if(hasPermission('routes.view'))
+                    <li>
+                      <a href="{{ route('routes.show', $route->id) }}" 
+                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Visualizar
+                      </a>
+                    </li>
+                    @endif
+                    @if(hasPermission('routes.manage'))
                     <li>
                       <a href="{{ route('routes.edit', $route->id) }}" 
-                          class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
@@ -162,8 +178,10 @@
                         </button>
                       </form>
                     </li>
+                    @endif
                   </ul>
                 </div>
+                @endif
               </td>
             </tr>
             @endforeach

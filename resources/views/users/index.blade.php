@@ -44,6 +44,7 @@
                 <p class="text-sm text-gray-600">Gerencie e cadastre usuários</p>
             </div>
 
+            @if(hasPermission('users.manage'))
             <a href="{{ route('users.create') }}" 
                class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,6 +52,7 @@
                 </svg>
                 Adicionar
             </a>
+            @endif
         </div>
 
         <!-- Card principal -->
@@ -92,6 +94,7 @@
                                 <th class="px-6 py-3 text-gray-600 font-medium">CÓD.</th>
                                 <th class="px-6 py-3 text-gray-600 font-medium">NOME</th>
                                 <th class="px-6 py-3 text-gray-600 font-medium">E-MAIL</th>
+                                <th class="px-6 py-3 text-gray-600 font-medium">GRUPO DE PERMISSÃO</th>
                                 <th class="px-6 py-3 text-gray-600 font-medium">STATUS</th>
                                 <th class="px-6 py-3 text-gray-600 font-medium text-right">AÇÕES</th>
                             </tr>
@@ -103,11 +106,19 @@
                                 <td class="px-6 py-4 text-gray-900">{{ $user->name }}</td>
                                 <td class="px-6 py-4 text-gray-900">{{ $user->email }}</td>
                                 <td class="px-6 py-4">
+                                    @if($user->permissionGroups->first())
+                                        <span class="badge bg-info">{{ $user->permissionGroups->first()->name }}</span>
+                                    @else
+                                        <span class="text-gray-500">Sem grupo</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
                                         {{ $user->status ? 'Ativo' : 'Inativo' }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-right">
+                                    @if(hasPermission('users.view') || hasPermission('users.manage'))
                                     <button class="text-gray-400 hover:text-gray-600" data-dropdown-toggle="dropdown-{{ $user->id }}">
                                         <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
@@ -115,6 +126,19 @@
                                     </button>
                                     <div id="dropdown-{{ $user->id }}" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
                                         <ul class="py-1">
+                                            @if(hasPermission('users.view'))
+                                            <li>
+                                                <a href="{{ route('users.show', $user->id) }}" 
+                                                   class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                    </svg>
+                                                    Visualizar
+                                                </a>
+                                            </li>
+                                            @endif
+                                            @if(hasPermission('users.manage'))
                                             <li>
                                                 <a href="{{ route('users.edit', $user->id) }}" 
                                                    class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
@@ -136,8 +160,10 @@
                                                     </button>
                                                 </form>
                                             </li>
+                                            @endif
                                         </ul>
                                     </div>
+                                    @endif
                                 </td>
                             </tr>
                             @endforeach
@@ -218,22 +244,31 @@ document.addEventListener('DOMContentLoaded', function() {
                         method: 'DELETE',
                         headers: {
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json'
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
                         }
                     })
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Network response was not ok');
+                            return response.text().then(text => {
+                                try {
+                                    return JSON.parse(text);
+                                } catch (e) {
+                                    throw new Error('Erro ao processar resposta do servidor');
+                                }
+                            });
                         }
                         return response.json();
                     })
                     .then(data => {
                         if (data.success) {
-                            Swal.fire(
-                                'Excluído!',
-                                data.message || 'O usuário foi excluído com sucesso.',
-                                'success'
-                            ).then(() => {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Sucesso!',
+                                text: data.message || 'Usuário excluído com sucesso.',
+                                showConfirmButton: false,
+                                timer: 1500
+                            }).then(() => {
                                 window.location.reload();
                             });
                         } else {
@@ -242,11 +277,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        Swal.fire(
-                            'Erro!',
-                            error.message || 'Ocorreu um erro ao excluir o usuário.',
-                            'error'
-                        );
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Erro!',
+                            text: error.message || 'Ocorreu um erro ao excluir o usuário.',
+                            confirmButtonColor: '#3085d6'
+                        });
                     });
                 }
             });

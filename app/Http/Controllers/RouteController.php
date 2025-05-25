@@ -18,8 +18,24 @@ class RouteController extends Controller
 
     public function index()
     {
-        $routes = Route::with(['driver', 'truck'])->paginate(10);
-        return view('routes.index', compact('routes'));
+        try {
+            $routes = Route::with(['driver', 'truck'])
+                ->when(request('search'), function($query, $search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                ->paginate(10);
+
+            return view('routes.index', compact('routes'));
+        } catch (\Exception $e) {
+            \Log::error('Erro ao carregar rotas:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return view('routes.index', [
+                'routes' => collect([])
+            ])->with('error', 'Erro ao carregar rotas');
+        }
     }
 
     public function create()

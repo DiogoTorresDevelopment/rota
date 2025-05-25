@@ -14,6 +14,7 @@
       <p class="text-sm text-gray-600">Gerencie e cadastre caminhões</p>
     </div>
 
+    @if(hasPermission('trucks.manage'))
     <a href="{{ route('trucks.create') }}" 
        class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,6 +22,7 @@
       </svg>
       Adicionar
     </a>
+    @endif
   </div>
 
   <!-- Card principal -->
@@ -84,6 +86,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
+                @if(hasPermission('trucks.view') || hasPermission('trucks.manage'))
                 <button class="text-gray-400 hover:text-gray-600" data-dropdown-toggle="dropdown-{{ $truck->id }}">
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
@@ -91,6 +94,19 @@
                 </button>
                 <div id="dropdown-{{ $truck->id }}" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
                   <ul class="py-1">
+                    @if(hasPermission('trucks.view'))
+                    <li>
+                      <a href="{{ route('trucks.show', $truck->id) }}" 
+                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Visualizar
+                      </a>
+                    </li>
+                    @endif
+                    @if(hasPermission('trucks.manage'))
                     <li>
                       <a href="{{ route('trucks.edit', $truck->id) }}" 
                          class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
@@ -112,8 +128,10 @@
                         </button>
                       </form>
                     </li>
+                    @endif
                   </ul>
                 </div>
+                @endif
               </td>
             </tr>
             @empty

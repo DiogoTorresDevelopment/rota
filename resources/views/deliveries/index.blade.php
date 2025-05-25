@@ -12,17 +12,18 @@
   <div class="flex justify-between items-center mb-6">
     <div>
       <h1 class="text-xl font-semibold text-gray-900">Entregas</h1>
-      <p class="text-sm text-gray-600">Gerenciar as entregas</p>
+      <p class="text-sm text-gray-600">Gerencie e cadastre entregas</p>
     </div>
 
-    <button type="button" 
-            onclick="openRouteModal()"
-            class="flex items-center px-4 py-2 bg-[#111928] text-white rounded-lg hover:bg-[#1a2438] focus:ring-4 focus:ring-gray-300">
-      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      Iniciar rota
-    </button>
+    @if(hasPermission('deliveries.manage'))
+    <a href="{{ route('deliveries.create') }}" 
+       class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Adicionar
+    </a>
+    @endif
   </div>
 
   <!-- Card principal -->
@@ -74,8 +75,8 @@
             @foreach($deliveries as $delivery)
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 text-gray-600">{{ $delivery->id }}</td>
-              <td class="px-6 py-4 text-gray-900">{{ $delivery->route ? $delivery->route->name : 'Rota Excluída' }}</td>
-              <td class="px-6 py-4 text-gray-600">{{ $delivery->route ? $delivery->route->driver->name : 'N/A' }}</td>
+              <td class="px-6 py-4 text-gray-900">{{ optional($delivery->route)->name ?? 'Rota Excluída' }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ optional(optional($delivery->route)->driver)->name ?? 'Motorista não encontrado' }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $delivery->start_date?->format('d/m/Y') }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $delivery->end_date?->format('d/m/Y') }}</td>
               <td class="px-6 py-4">
@@ -104,7 +105,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
-                @if($delivery->status === 'in_progress' && $delivery->route)
+                @if($delivery->status === 'in_progress' && $delivery->route && hasPermission('deliveries.manage'))
                   <button type="button" 
                           onclick="completeDelivery({{ $delivery->id }})"
                           class="inline-flex items-center p-2 text-sm font-medium text-green-600 bg-green-100 rounded-lg hover:bg-green-200 focus:ring-4 focus:ring-green-300"
@@ -114,7 +115,7 @@
                     </svg>
                     <span class="sr-only">Finalizar entrega</span>
                   </button>
-                @else
+                @elseif(hasPermission('deliveries.view'))
                   <button type="button" 
                           onclick="viewDeliveryDetails({{ $delivery->id }})"
                           class="inline-flex items-center p-2 text-sm font-medium text-[#1a2438] bg-gray-100 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-300"
@@ -164,7 +165,7 @@
             <select id="route_id" name="route_id" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" required>
               <option value="">Selecione uma rota</option>
               @foreach($availableRoutes as $route)
-                <option value="{{ $route->id }}">{{ $route->name }} - {{ $route->driver->name }}</option>
+                <option value="{{ $route->id }}">{{ $route->name }} - {{ optional($route->driver)->name ?? 'Motorista não encontrado' }}</option>
               @endforeach
             </select>
           </div>
@@ -423,13 +424,13 @@ async function viewDeliveryDetails(deliveryId) {
                     <span class="font-medium">Nome da Rota:</span> ${data.data.route ? data.data.route.name : 'Rota Excluída'}
                 </div>
                 <div>
-                    <span class="font-medium">Motorista:</span> ${data.data.route ? data.data.route.driver.name : 'N/A'}
+                    <span class="font-medium">Motorista:</span> ${data.data.route && data.data.route.driver ? data.data.route.driver.name : 'Motorista não encontrado'}
                 </div>
                 <div>
-                    <span class="font-medium">Data Início:</span> ${data.data.start_date}
+                    <span class="font-medium">Data Início:</span> ${data.data.start_date || 'N/A'}
                 </div>
                 <div>
-                    <span class="font-medium">Data Fim:</span> ${data.data.end_date}
+                    <span class="font-medium">Data Fim:</span> ${data.data.end_date || 'N/A'}
                 </div>
             `;
 

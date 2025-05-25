@@ -35,7 +35,7 @@
         <p class="mt-1 text-sm text-gray-600">Estas informações serão utilizadas dentro do sistema.</p>
       </div>
 
-      <form action="{{ route('users.update', $user) }}" method="POST">
+      <form action="{{ route('users.update', $user->id) }}" method="POST">
         @csrf
         @method('PUT')
         
@@ -50,8 +50,8 @@
                    class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('name') border-red-500 @enderror" 
                    id="name" 
                    name="name" 
-                   value="{{ old('name', $user->name) }}"
-                   placeholder="Digite o nome">
+                   value="{{ $user->name }}"
+                   required>
             @error('name')
               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
@@ -66,8 +66,8 @@
                    class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('email') border-red-500 @enderror" 
                    id="email" 
                    name="email" 
-                   value="{{ old('email', $user->email) }}"
-                   placeholder="Digite o e-mail">
+                   value="{{ $user->email }}"
+                   required>
             @error('email')
               <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
@@ -76,7 +76,7 @@
           <!-- Senha -->
           <div>
             <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
-              Senha
+              Nova Senha
             </label>
             <input type="password" 
                    class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('password') border-red-500 @enderror" 
@@ -88,20 +88,50 @@
             @enderror
           </div>
 
-          <!-- Status -->
+          <!-- Confirmar Senha -->
           <div>
-            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">
-              Status
+            <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
+              Confirmar Nova Senha
             </label>
-            <select class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('status') border-red-500 @enderror" 
-                    id="status" 
-                    name="status">
-              <option value="1" {{ old('status', $user->status) ? 'selected' : '' }}>Ativo</option>
-              <option value="0" {{ old('status', $user->status) ? '' : 'selected' }}>Inativo</option>
-            </select>
-            @error('status')
-              <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
+            <input type="password" 
+                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500" 
+                   id="password_confirmation" 
+                   name="password_confirmation"
+                   placeholder="Confirme a nova senha">
+          </div>
+        </div>
+
+        <!-- Grupos de Permissão -->
+        <div class="mb-3">
+          <label for="permission_group" class="form-label">Grupo de Permissão</label>
+          <select class="form-select @error('permission_group') is-invalid @enderror" 
+                  id="permission_group" 
+                  name="permission_group">
+            <option value="">Selecione um grupo</option>
+            @foreach($permissionGroups as $group)
+              <option value="{{ $group->id }}" {{ old('permission_group', $user->permissionGroups->first()?->id) == $group->id ? 'selected' : '' }}>
+                {{ $group->name }}
+              </option>
+            @endforeach
+          </select>
+          @error('permission_group')
+            <div class="invalid-feedback">{{ $message }}</div>
+          @enderror
+          <small class="text-muted">Selecione o grupo de permissão do usuário.</small>
+        </div>
+
+        <!-- Status -->
+        <div class="mb-6">
+          <div class="flex items-center">
+            <input type="checkbox" 
+                   id="status" 
+                   name="status" 
+                   value="1" 
+                   class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                   {{ $user->status ? 'checked' : '' }}>
+            <label for="status" class="ml-2 text-sm font-medium text-gray-700">
+              Ativo
+            </label>
           </div>
         </div>
 
@@ -113,11 +143,27 @@
           </a>
           <button type="submit" 
                   class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-            Salvar
+            Atualizar
           </button>
         </div>
       </form>
     </div>
   </div>
 </div>
-@endsection 
+@endsection
+
+@push('plugin-scripts')
+<script src="{{ asset('assets/plugins/select2/select2.min.js') }}"></script>
+@endpush
+
+@push('custom-scripts')
+<script>
+    $(document).ready(function() {
+        $('select[name="permission_groups[]"]').select2({
+            placeholder: "Selecione os grupos de permissão",
+            allowClear: true,
+            width: '100%'
+        });
+    });
+</script>
+@endpush 

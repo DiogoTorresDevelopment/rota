@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Registered;
@@ -13,13 +13,26 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
+            'email' => 'required|email',
+            'password' => 'required'
         ]);
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended('/');
+            
+            // Carrega o usuário com suas permissões
+            $user = Auth::user()->load('permissionGroups.permissions');
+            
+            // Armazena as permissões na sessão
+            $permissions = [];
+            foreach ($user->permissionGroups as $group) {
+                foreach ($group->permissions as $permission) {
+                    $permissions[] = $permission->slug;
+                }
+            }
+            session(['user_permissions' => $permissions]);
+
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -30,11 +43,9 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
-        
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        return redirect('/login');
+        return redirect()->route('login');
     }
 
     public function checkAuth()
@@ -57,6 +68,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'status' => true
         ]);
 
         Auth::login($user);

@@ -34,10 +34,11 @@
   <!-- Cabeçalho com Título e Botão -->
   <div class="flex justify-between items-center mb-6">
     <div>
-      <h1 class="text-xl font-semibold text-gray-900">Usuários</h1>
-      <p class="text-sm text-gray-600">Gerencie e cadastre usuários</p>
+      <h1 class="text-xl font-semibold text-gray-900">Grupos de Permissão</h1>
+      <p class="text-sm text-gray-600">Gerencie os grupos de permissão do sistema</p>
     </div>
 
+    @if(hasPermission('permissions.manage'))
     <a href="{{ route('permissions.create') }}" 
        class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
       <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -45,6 +46,7 @@
       </svg>
       Adicionar
     </a>
+    @endif
   </div>
 
   <!-- Card principal -->
@@ -100,6 +102,7 @@
                 </span>
               </td>
               <td class="px-6 py-4 text-right">
+                @if(hasPermission('permissions.view') || hasPermission('permissions.manage'))
                 <button class="text-gray-400 hover:text-gray-600" data-dropdown-toggle="dropdown-{{ $group->id }}">
                   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
@@ -107,9 +110,22 @@
                 </button>
                 <div id="dropdown-{{ $group->id }}" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
                   <ul class="py-1">
+                    @if(hasPermission('permissions.view'))
                     <li>
-                      <a href="{{ route('permissions.edit', ['permission' => $group->id]) }}" 
-                          class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                      <a href="{{ route('permissions.show', $group->id) }}" 
+                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
+                        Visualizar
+                      </a>
+                    </li>
+                    @endif
+                    @if(hasPermission('permissions.manage'))
+                    <li>
+                      <a href="{{ route('permissions.edit', $group->id) }}" 
+                         class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
                         </svg>
@@ -120,7 +136,7 @@
                       <form action="{{ route('permissions.destroy', $group->id) }}" method="POST">
                         @csrf
                         @method('DELETE')
-                        <button type="button" class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50 delete-group">
+                        <button type="button" class="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-gray-50 delete-permission">
                           <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                           </svg>
@@ -128,8 +144,10 @@
                         </button>
                       </form>
                     </li>
+                    @endif
                   </ul>
                 </div>
+                @endif
               </td>
             </tr>
             @endforeach
@@ -189,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Confirmação de exclusão com SweetAlert2
-  const deleteButtons = document.querySelectorAll('.delete-group');
+  const deleteButtons = document.querySelectorAll('.delete-permission');
   deleteButtons.forEach(button => {
     button.addEventListener('click', function(e) {
       e.preventDefault();

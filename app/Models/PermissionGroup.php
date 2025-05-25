@@ -18,6 +18,6 @@ class PermissionGroup extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class, 'user_has_permission_groups');
     }
 } 
