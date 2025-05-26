@@ -32,9 +32,13 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
-
         parent::boot();
+
+        if (app()->runningInConsole() && app()->environment('local')) {
+            $this->commands([
+                \App\Console\Commands\ListApiRoutes::class
+            ]);
+        }
     }
 
     /**

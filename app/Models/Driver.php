@@ -4,16 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Driver extends Model
+class Driver extends Authenticatable
 {
-    use SoftDeletes;
+    use SoftDeletes, HasApiTokens;
 
     protected $fillable = [
         'name',
         'cpf',
         'phone',
         'email',
+        'password',
         'status',
         'cep',
         'state',
@@ -21,6 +24,12 @@ class Driver extends Model
         'street',
         'number',
         'district'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'api_token'
     ];
 
     protected $casts = [
@@ -31,5 +40,10 @@ class Driver extends Model
     public function documents()
     {
         return $this->hasMany(DriverDocument::class);
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = bcrypt($value);
     }
 } 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Services\DriverService;
 use App\Http\Requests\DriverRequest;
 use App\Models\DriverDocument;
+use Illuminate\Support\Str;
 
 class DriverController extends Controller
 {
@@ -32,12 +33,20 @@ class DriverController extends Controller
     public function store(DriverRequest $request)
     {
         try {
-            $driver = $this->driverService->store($request->validated());
+            $data = $request->validated();
+            
+            // Gera uma senha aleatória se não for fornecida
+            if (!isset($data['password'])) {
+                $data['password'] = Str::random(8);
+            }
+            
+            $driver = $this->driverService->store($data);
             
             return response()->json([
                 'success' => true,
                 'message' => 'Dados básicos salvos com sucesso!',
-                'driver' => $driver
+                'driver' => $driver,
+                'password' => $data['password'] // Retorna a senha gerada
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -68,7 +77,13 @@ class DriverController extends Controller
                 'street' => 'required|string',
                 'number' => 'required|string',
                 'district' => 'required|string',
+                'password' => 'nullable|string|min:6',
             ]);
+
+            // Se uma nova senha foi fornecida, atualiza
+            if (isset($validated['password'])) {
+                $driver->password = $validated['password'];
+            }
 
             $driver->update($validated);
 
@@ -227,5 +242,55 @@ class DriverController extends Controller
                 'message' => 'Erro ao excluir documento: ' . $e->getMessage()
             ], 422);
         }
+    }
+
+    public function apiProfile(Request $request)
+    {
+        $user = $request->user();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'type' => 'driver',
+                    'driver' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'phone' => $user->phone,
+                        'status' => $user->status
+                    ]
+                ]
+            ]
+        ]);
+    }
+
+    public function apiUpdateProfile(Request $request)
+    {
+        $driver = $request->user()->driver;
+        
+        if (!$driver) {
+            return response()->json([
+                'message' => 'Perfil de motorista não encontrado'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'phone' => 'sometimes|required|string|max:20',
+            'address' => 'sometimes|required|string|max:255',
+            'city' => 'sometimes|required|string|max:100',
+            'state' => 'sometimes|required|string|max:2',
+            'zip_code' => 'sometimes|required|string|max:9',
+        ]);
+
+        $driver->update($validated);
+
+        return response()->json([
+            'message' => 'Perfil atualizado com sucesso',
+            'driver' => $driver->fresh()
+        ]);
     }
 } 

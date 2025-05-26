@@ -20,11 +20,17 @@ class RouteAddress extends Model
         'district',
         'street',
         'number',
-        'complement'
+        'complement',
+        'latitude',
+        'longitude',
+        'place_id',
+        'formatted_address'
     ];
 
     protected $casts = [
         'schedule' => 'datetime:H:i',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8'
     ];
 
     public function route()

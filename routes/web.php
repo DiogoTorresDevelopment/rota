@@ -160,6 +160,7 @@ Route::middleware(['auth'])->group(function () {
     // Mova estas rotas ANTES da rota catch-all 404
     Route::resource('trucks', TruckController::class);
     Route::resource('routes', RouteController::class);
+    Route::post('routes/{route}/optimize', [RouteController::class, 'optimize'])->name('routes.optimize');
     Route::resource('deliveries', DeliveryController::class);
     Route::post('deliveries/{delivery}/complete', [DeliveryController::class, 'complete'])
         ->name('deliveries.complete');

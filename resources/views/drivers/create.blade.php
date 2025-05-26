@@ -108,6 +108,20 @@
               @enderror
             </div>
 
+            <!-- Senha -->
+            <div>
+              <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+              <input type="password" 
+                     class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('password') border-red-500 @enderror" 
+                     id="password" 
+                     name="password" 
+                     placeholder="Deixe em branco para gerar uma senha aleatória">
+              <p class="mt-1 text-sm text-gray-500">Deixe em branco para gerar uma senha aleatória</p>
+              @error('password')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+              @enderror
+            </div>
+
             <!-- Endereço -->
             <div class="col-span-full">
               <h3 class="text-lg font-medium text-gray-900 mb-4">Endereço</h3>

@@ -77,6 +77,25 @@
                             </div>
                         </div>
 
+                        {{-- Campos de Coordenadas --}}
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="destino_latitude" class="block text-sm font-medium text-gray-700">Latitude</label>
+                                <input type="text" id="destino_latitude" name="latitude" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="-23.550520">
+                            </div>
+                            <div>
+                                <label for="destino_longitude" class="block text-sm font-medium text-gray-700">Longitude</label>
+                                <input type="text" id="destino_longitude" name="longitude" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500" placeholder="-46.633308">
+                            </div>
+                            <div class="flex items-end">
+                                <button type="button" 
+                                        onclick="buscarCoordenadasDestino()"
+                                        class="w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Buscar Coordenadas
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="flex justify-end space-x-3">
                             <button type="button" onclick="hideDestinoForm()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                 Cancelar
@@ -106,12 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
         @foreach($route->stops as $stop)
             destinations.push({
                 tempId: tempId++,
+                id: {{ $stop->id }},
                 name: "{{ $stop->name }}",
                 cep: "{{ $stop->cep }}",
                 state: "{{ $stop->state }}",
                 city: "{{ $stop->city }}",
                 street: "{{ $stop->street }}",
-                number: "{{ $stop->number }}"
+                number: "{{ $stop->number }}",
+                latitude: "{{ $stop->latitude }}",
+                longitude: "{{ $stop->longitude }}",
+                order: {{ $stop->order }}
             });
 
             // Adiciona o destino na lista visual
@@ -124,13 +147,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div>
                             <h4 class="text-sm font-medium text-gray-900">${"{{ $stop->name }}"}</h4>
                             <p class="text-sm text-gray-500">${"{{ $stop->city }}"} - ${"{{ $stop->state }}"}</p>
+                            <p class="text-sm text-gray-500">${"{{ $stop->street }}"}, ${"{{ $stop->number }}"}</p>
+                            ${"{{ $stop->latitude }}" && "{{ $stop->longitude }}" ? 
+                                `<p class="text-xs text-gray-400 mt-1">Coordenadas: ${"{{ $stop->latitude }}"}, ${"{{ $stop->longitude }}"}</p>` : 
+                                ''}
                         </div>
                     </div>
-                    <button type="button" onclick="removeDestino(${tempId - 1})" class="text-red-600 hover:text-red-800">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                    </button>
+                    <div class="flex space-x-2">
+                        <button type="button" onclick="editDestino(${tempId - 1})" class="text-blue-600 hover:text-blue-800">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </button>
+                        <button type="button" onclick="removeDestino(${tempId - 1})" class="text-red-600 hover:text-red-800">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             `);
         @endforeach
@@ -156,6 +190,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    window.editDestino = function(tempId) {
+        const destino = destinations.find(d => d.tempId === tempId);
+        if (!destino) return;
+
+        // Preenche o formulário com os dados do destino
+        document.getElementById('destino_name').value = destino.name;
+        document.getElementById('destino_cep').value = destino.cep;
+        document.getElementById('destino_estado').value = destino.state;
+        document.getElementById('destino_cidade').value = destino.city;
+        document.getElementById('destino_endereco').value = destino.street;
+        document.getElementById('destino_numero').value = destino.number;
+        document.getElementById('destino_latitude').value = destino.latitude || '';
+        document.getElementById('destino_longitude').value = destino.longitude || '';
+
+        // Remove o destino atual da lista
+        removeDestino(tempId);
+
+        // Mostra o modal
+        showDestinoForm();
+    }
+
     window.addDestino = function(e) {
         e.preventDefault();
         
@@ -167,9 +222,50 @@ document.addEventListener('DOMContentLoaded', function() {
             state: formData.get('state'),
             city: formData.get('city'),
             street: formData.get('street'),
-            number: formData.get('number')
+            number: formData.get('number'),
+            latitude: formData.get('latitude'),
+            longitude: formData.get('longitude'),
+            order: destinations.length + 1
         };
 
+        // Verifica se já existe um destino com o mesmo endereço
+        const enderecoExistente = destinations.find(d => 
+            d.cep === destino.cep && 
+            d.street === destino.street && 
+            d.number === destino.number
+        );
+
+        if (enderecoExistente) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Este endereço já foi adicionado à rota.'
+            });
+            return false;
+        }
+
+        // Verifica se as coordenadas foram preenchidas
+        if (!destino.latitude || !destino.longitude) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'As coordenadas não foram preenchidas. Deseja continuar mesmo assim?',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, continuar',
+                cancelButtonText: 'Não, cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    addDestinoToList(destino);
+                }
+            });
+            return false;
+        }
+
+        addDestinoToList(destino);
+        return false;
+    }
+
+    function addDestinoToList(destino) {
         destinations.push(destino);
         
         const html = `
@@ -181,33 +277,34 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>
                         <h4 class="text-sm font-medium text-gray-900">${destino.name}</h4>
                         <p class="text-sm text-gray-500">${destino.city} - ${destino.state}</p>
+                        <p class="text-sm text-gray-500">${destino.street}, ${destino.number}</p>
+                        ${destino.latitude && destino.longitude ? 
+                            `<p class="text-xs text-gray-400 mt-1">Coordenadas: ${destino.latitude}, ${destino.longitude}</p>` : 
+                            ''}
                     </div>
                 </div>
-                <button type="button" onclick="removeDestino(${destino.tempId})" class="text-red-600 hover:text-red-800">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                </button>
+                <div class="flex space-x-2">
+                    <button type="button" onclick="editDestino(${destino.tempId})" class="text-blue-600 hover:text-blue-800">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                    </button>
+                    <button type="button" onclick="removeDestino(${destino.tempId})" class="text-red-600 hover:text-red-800">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
             </div>
         `;
         
         document.getElementById('destinos-list').insertAdjacentHTML('beforeend', html);
         updateDestinationsData();
-        
-        // Limpa o formulário sem fechar o modal
-        destinoForm.reset();
-        
-        // Opcional: Foca no primeiro campo para facilitar nova entrada
-        document.getElementById('destino_name').focus();
-        
-        return false;
+        hideDestinoForm();
     }
 
     function updateDestinationsData() {
-        const input = document.getElementById('destinations-data');
-        input.value = JSON.stringify(destinations);
-        console.log('Destinations data:', destinations); // Para debug
-        console.log('Input value:', input.value); // Para debug
+        document.getElementById('destinations-data').value = JSON.stringify(destinations);
     }
 
     // Busca CEP
@@ -239,32 +336,75 @@ document.addEventListener('DOMContentLoaded', function() {
         e.target.value = value;
     });
 
+    // Função para buscar coordenadas do destino
+    window.buscarCoordenadasDestino = async function() {
+        const cep = document.getElementById('destino_cep').value;
+        const estado = document.getElementById('destino_estado').value;
+        const cidade = document.getElementById('destino_cidade').value;
+        const endereco = document.getElementById('destino_endereco').value;
+        const numero = document.getElementById('destino_numero').value;
+
+        if (!cep || !estado || !cidade || !endereco || !numero) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Preencha todos os campos do endereço antes de buscar as coordenadas.'
+            });
+            return;
+        }
+
+        const enderecoCompleto = `${endereco}, ${numero}, ${cidade}, ${estado}, ${cep}`;
+
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(enderecoCompleto)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                document.getElementById('destino_latitude').value = data[0].lat;
+                document.getElementById('destino_longitude').value = data[0].lon;
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso',
+                    text: 'Coordenadas encontradas com sucesso!'
+                });
+            } else {
+                throw new Error('Endereço não encontrado');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Não foi possível encontrar as coordenadas para este endereço.'
+            });
+        }
+    };
+
     // Handler para o formulário principal
     routeForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         if (destinations.length === 0) {
-            alert('Adicione pelo menos um destino antes de salvar.');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: 'Adicione pelo menos um destino antes de salvar.'
+            });
             return;
         }
 
-            const formData = new FormData(routeForm);
-            formData.append('step', '3');
-            
-            // Pega o route_id da URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const routeId = urlParams.get('route_id');
-            if (routeId) {
-                formData.append('route_id', routeId);
-            }
+        const formData = new FormData(routeForm);
+        formData.append('step', '3');
+        formData.append('destinations', JSON.stringify(destinations));
+        
+        // Pega o route_id da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const routeId = urlParams.get('route_id');
+        if (routeId) {
+            formData.append('route_id', routeId);
+        }
 
-            // Log dos dados sendo enviados
-            console.log('Sending data:', {
-                destinations: destinations,
-                route_id: routeId,
-                step: 3
-            });
-
+        try {
             const response = await fetch(routeForm.action, {
                 method: 'POST',
                 body: formData,
@@ -275,43 +415,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Log da resposta bruta
-            const responseText = await response.text();
-            console.log('Raw response:', responseText);
+            const data = await response.json();
 
-            // Tenta fazer o parse do JSON apenas se houver conteúdo
-            let data;
-            if (responseText) {
-                try {
-                    data = JSON.parse(responseText);
-                } catch (e) {
-                    console.error('Error parsing JSON:', e);
-                    // Se a resposta foi ok mas não é JSON válido, consideramos sucesso
-                    if (response.ok) {
-                        alert('Destinos salvos com sucesso!');
-                        // Opcional: redirecionar para a próxima etapa ou listagem
-                        window.location.href = `${window.location.pathname}?step=4&route_id=${routeId}`;
-                        return;
-                    }
-                }
-            }
-
-            // Se temos dados JSON válidos
-            if (data && data.success) {
-                alert('Destinos salvos com sucesso!');
-                // Opcional: redirecionar para a próxima etapa ou listagem
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: 'Destinos salvos com sucesso!',
+                    showConfirmButton: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
                 window.location.href = `${window.location.pathname}?step=4&route_id=${data.route_id}`;
-            } else if (data && !data.success) {
-                throw new Error(data.message || 'Erro ao salvar os dados');
+                    }
+                });
             } else {
-                // Se chegamos aqui, a resposta não foi nem sucesso nem erro conhecido
-                if (response.ok) {
-                    alert('Destinos salvos com sucesso!');
-                    window.location.href = `${window.location.pathname}?step=4&route_id=${routeId}`;
-                } else {
-                    throw new Error('Resposta inválida do servidor');
-                }
+                throw new Error(data.message || 'Erro ao salvar os dados');
             }
+        } catch (error) {
+            console.error('Erro:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro!',
+                text: 'Erro ao salvar: ' + error.message
+            });
+        }
     });
 });
 </script>

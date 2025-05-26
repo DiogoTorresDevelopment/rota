@@ -19,10 +19,11 @@ class RouteController extends Controller
     public function index()
     {
         try {
-            $routes = Route::with(['driver', 'truck'])
+            $routes = Route::with(['driver', 'truck', 'stops'])
                 ->when(request('search'), function($query, $search) {
                     $query->where('name', 'like', "%{$search}%");
                 })
+                ->orderBy('created_at', 'desc')
                 ->paginate(10);
 
             return view('routes.index', compact('routes'));
@@ -82,6 +83,8 @@ class RouteController extends Controller
                         'origin.city' => 'required|string',
                         'origin.street' => 'required|string',
                         'origin.number' => 'required|string',
+                        'origin.latitude' => 'nullable|numeric|between:-90,90',
+                        'origin.longitude' => 'nullable|numeric|between:-180,180',
                         
                         'destination.name' => 'required|string|max:255',
                         'destination.cep' => 'required|string',
@@ -89,6 +92,8 @@ class RouteController extends Controller
                         'destination.city' => 'required|string',
                         'destination.street' => 'required|string',
                         'destination.number' => 'required|string',
+                        'destination.latitude' => 'nullable|numeric|between:-90,90',
+                        'destination.longitude' => 'nullable|numeric|between:-180,180',
                     ]);
 
                     $route = Route::findOrFail($request->route_id);
@@ -104,6 +109,8 @@ class RouteController extends Controller
                             'city' => $validated['origin']['city'],
                             'street' => $validated['origin']['street'],
                             'number' => $validated['origin']['number'],
+                            'latitude' => $validated['origin']['latitude'],
+                            'longitude' => $validated['origin']['longitude'],
                         ]
                     );
 
@@ -117,6 +124,8 @@ class RouteController extends Controller
                             'city' => $validated['destination']['city'],
                             'street' => $validated['destination']['street'],
                             'number' => $validated['destination']['number'],
+                            'latitude' => $validated['destination']['latitude'],
+                            'longitude' => $validated['destination']['longitude'],
                         ]
                     );
 
@@ -156,7 +165,9 @@ class RouteController extends Controller
                             'state' => $destination['state'],
                             'city' => $destination['city'],
                             'street' => $destination['street'],
-                            'number' => $destination['number']
+                            'number' => $destination['number'],
+                            'latitude' => $destination['latitude'],
+                            'longitude' => $destination['longitude']
                         ]);
                     }
 
@@ -232,5 +243,149 @@ class RouteController extends Controller
                 'message' => 'Erro ao excluir: ' . $e->getMessage()
             ], 422);
         }
+    }
+
+    public function optimize(Route $route)
+    {
+        try {
+            $optimizedRoute = $this->routeService->optimizeRouteStops($route);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Rota otimizada com sucesso!',
+                'data' => $optimizedRoute
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao otimizar rota:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao otimizar rota: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
+    public function apiDriverRoutes(Request $request)
+    {
+        $driver = $request->user()->driver;
+        
+        if (!$driver) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Perfil de motorista não encontrado'
+            ], 404);
+        }
+
+        $routes = Route::where('driver_id', $driver->id)
+            ->with(['truck', 'stops'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($route) {
+                return [
+                    'id' => $route->id,
+                    'name' => $route->name,
+                    'status' => $route->status,
+                    'start_date' => $route->start_date,
+                    'current_mileage' => $route->current_mileage,
+                    'truck' => $route->truck ? [
+                        'id' => $route->truck->id,
+                        'plate' => $route->truck->plate,
+                        'model' => $route->truck->model,
+                    ] : null,
+                    'stops' => $route->stops->map(function ($stop) {
+                        return [
+                            'id' => $stop->id,
+                            'name' => $stop->name,
+                            'order' => $stop->order,
+                            'latitude' => $stop->latitude,
+                            'longitude' => $stop->longitude,
+                            'address' => [
+                                'street' => $stop->street,
+                                'number' => $stop->number,
+                                'city' => $stop->city,
+                                'state' => $stop->state,
+                                'cep' => $stop->cep,
+                            ]
+                        ];
+                    })
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'routes' => $routes
+            ]
+        ]);
+    }
+
+    public function apiDriverRouteDetails(Request $request, Route $route)
+    {
+        $driver = $request->user()->driver;
+        
+        if (!$driver || $route->driver_id !== $driver->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Rota não encontrada'
+            ], 404);
+        }
+
+        $route->load(['truck', 'stops', 'deliveries']);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'route' => [
+                    'id' => $route->id,
+                    'name' => $route->name,
+                    'status' => $route->status,
+                    'start_date' => $route->start_date,
+                    'current_mileage' => $route->current_mileage,
+                    'truck' => $route->truck ? [
+                        'id' => $route->truck->id,
+                        'plate' => $route->truck->plate,
+                        'model' => $route->truck->model,
+                    ] : null,
+                    'stops' => $route->stops->map(function ($stop) {
+                        return [
+                            'id' => $stop->id,
+                            'name' => $stop->name,
+                            'order' => $stop->order,
+                            'latitude' => $stop->latitude,
+                            'longitude' => $stop->longitude,
+                            'address' => [
+                                'street' => $stop->street,
+                                'number' => $stop->number,
+                                'city' => $stop->city,
+                                'state' => $stop->state,
+                                'cep' => $stop->cep,
+                            ]
+                        ];
+                    }),
+                    'deliveries' => $route->deliveries->map(function ($delivery) {
+                        return [
+                            'id' => $delivery->id,
+                            'status' => $delivery->status,
+                            'created_at' => $delivery->created_at,
+                            'completed_at' => $delivery->completed_at,
+                            'stop' => $delivery->stop ? [
+                                'id' => $delivery->stop->id,
+                                'name' => $delivery->stop->name,
+                                'address' => [
+                                    'street' => $delivery->stop->street,
+                                    'number' => $delivery->stop->number,
+                                    'city' => $delivery->stop->city,
+                                    'state' => $delivery->stop->state,
+                                    'cep' => $delivery->stop->cep,
+                                ]
+                            ] : null
+                        ];
+                    })
+                ]
+            ]
+        ]);
     }
 } 

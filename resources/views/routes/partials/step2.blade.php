@@ -90,6 +90,43 @@
                 @enderror
             </div>
         </div>
+
+        {{-- Coordenadas da Origem --}}
+        <div class="grid grid-cols-3 gap-6 mt-6">
+            <div>
+                <label for="latitude_origem" class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                <input type="text" 
+                       id="latitude_origem" 
+                       name="origin[latitude]" 
+                       value="{{ old('origin.latitude', $route->origin()?->latitude ?? '') }}"
+                       class="w-full h-12 px-4 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                       placeholder="-23.550520"
+                       readonly>
+                @error('origin.latitude')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label for="longitude_origem" class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                <input type="text" 
+                       id="longitude_origem" 
+                       name="origin[longitude]" 
+                       value="{{ old('origin.longitude', $route->origin()?->longitude ?? '') }}"
+                       class="w-full h-12 px-4 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                       placeholder="-46.633308"
+                       readonly>
+                @error('origin.longitude')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex items-end">
+                <button type="button" 
+                        onclick="buscarCoordenadas('origem')"
+                        class="w-full h-12 px-4 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Buscar Coordenadas
+                </button>
+            </div>
+        </div>
     </div>
 
     {{-- Destino Final --}}
@@ -168,6 +205,43 @@
                 @error('destination.number')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
+            </div>
+        </div>
+
+        {{-- Coordenadas do Destino --}}
+        <div class="grid grid-cols-3 gap-6 mt-6">
+            <div>
+                <label for="latitude_destino" class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                <input type="text" 
+                       id="latitude_destino" 
+                       name="destination[latitude]" 
+                       value="{{ old('destination.latitude', $route->destination()?->latitude ?? '') }}"
+                       class="w-full h-12 px-4 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                       placeholder="-23.550520"
+                       readonly>
+                @error('destination.latitude')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label for="longitude_destino" class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                <input type="text" 
+                       id="longitude_destino" 
+                       name="destination[longitude]" 
+                       value="{{ old('destination.longitude', $route->destination()?->longitude ?? '') }}"
+                       class="w-full h-12 px-4 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                       placeholder="-46.633308"
+                       readonly>
+                @error('destination.longitude')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex items-end">
+                <button type="button" 
+                        onclick="buscarCoordenadas('destino')"
+                        class="w-full h-12 px-4 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Buscar Coordenadas
+                </button>
             </div>
         </div>
     </div>
@@ -354,6 +428,53 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Erro ao salvar: ' + error.message);
         }
     });
+
+    // Função para buscar coordenadas
+    async function buscarCoordenadas(tipo) {
+        const cep = document.getElementById(`cep_${tipo}`).value;
+        const estado = document.getElementById(`estado_${tipo}`).value;
+        const cidade = document.getElementById(`cidade_${tipo}`).value;
+        const endereco = document.getElementById(`endereco_${tipo}`).value;
+        const numero = document.getElementById(`numero_${tipo}`).value;
+
+        if (!cep || !estado || !cidade || !endereco || !numero) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Preencha todos os campos do endereço antes de buscar as coordenadas.'
+            });
+            return;
+        }
+
+        const enderecoCompleto = `${endereco}, ${numero}, ${cidade}, ${estado}, ${cep}`;
+
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(enderecoCompleto)}`);
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                document.getElementById(`latitude_${tipo}`).value = data[0].lat;
+                document.getElementById(`longitude_${tipo}`).value = data[0].lon;
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso',
+                    text: 'Coordenadas encontradas com sucesso!'
+                });
+            } else {
+                throw new Error('Endereço não encontrado');
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Não foi possível encontrar as coordenadas para este endereço.'
+            });
+        }
+    }
+
+    // Expor a função globalmente
+    window.buscarCoordenadas = buscarCoordenadas;
 });
 </script>
 @endpush 

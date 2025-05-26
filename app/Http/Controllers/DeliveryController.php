@@ -118,4 +118,137 @@ class DeliveryController extends Controller
             ], 422);
         }
     }
+
+    public function apiDriverDeliveries(Request $request)
+    {
+        $driver = $request->user()->driver;
+        
+        if (!$driver) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Perfil de motorista não encontrado'
+            ], 404);
+        }
+
+        $deliveries = Delivery::whereHas('route', function($query) use ($driver) {
+                $query->where('driver_id', $driver->id);
+            })
+            ->with(['route', 'stop'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($delivery) {
+                return [
+                    'id' => $delivery->id,
+                    'status' => $delivery->status,
+                    'created_at' => $delivery->created_at,
+                    'completed_at' => $delivery->completed_at,
+                    'notes' => $delivery->notes,
+                    'photo_proof' => $delivery->photo_proof,
+                    'route' => [
+                        'id' => $delivery->route->id,
+                        'name' => $delivery->route->name,
+                        'status' => $delivery->route->status,
+                    ],
+                    'stop' => $delivery->stop ? [
+                        'id' => $delivery->stop->id,
+                        'name' => $delivery->stop->name,
+                        'order' => $delivery->stop->order,
+                        'latitude' => $delivery->stop->latitude,
+                        'longitude' => $delivery->stop->longitude,
+                        'address' => [
+                            'street' => $delivery->stop->street,
+                            'number' => $delivery->stop->number,
+                            'city' => $delivery->stop->city,
+                            'state' => $delivery->stop->state,
+                            'cep' => $delivery->stop->cep,
+                        ]
+                    ] : null
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'deliveries' => $deliveries
+            ]
+        ]);
+    }
+
+    public function apiDriverDeliveryDetails(Request $request, Delivery $delivery)
+    {
+        $driver = $request->user()->driver;
+        
+        if (!$driver || $delivery->route->driver_id !== $driver->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Entrega não encontrada'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'delivery' => [
+                    'id' => $delivery->id,
+                    'status' => $delivery->status,
+                    'created_at' => $delivery->created_at,
+                    'completed_at' => $delivery->completed_at,
+                    'notes' => $delivery->notes,
+                    'photo_proof' => $delivery->photo_proof,
+                    'route' => [
+                        'id' => $delivery->route->id,
+                        'name' => $delivery->route->name,
+                        'status' => $delivery->route->status,
+                    ],
+                    'stop' => $delivery->stop ? [
+                        'id' => $delivery->stop->id,
+                        'name' => $delivery->stop->name,
+                        'order' => $delivery->stop->order,
+                        'latitude' => $delivery->stop->latitude,
+                        'longitude' => $delivery->stop->longitude,
+                        'address' => [
+                            'street' => $delivery->stop->street,
+                            'number' => $delivery->stop->number,
+                            'city' => $delivery->stop->city,
+                            'state' => $delivery->stop->state,
+                            'cep' => $delivery->stop->cep,
+                        ]
+                    ] : null
+                ]
+            ]
+        ]);
+    }
+
+    public function apiCompleteDelivery(Request $request, Delivery $delivery)
+    {
+        $driver = $request->user()->driver;
+        
+        if (!$driver || $delivery->route->driver_id !== $driver->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Entrega não encontrada'
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:completed,cancelled',
+            'notes' => 'nullable|string|max:1000',
+            'photo_proof' => 'nullable|image|max:2048'
+        ]);
+
+        if ($request->hasFile('photo_proof')) {
+            $path = $request->file('photo_proof')->store('delivery-proofs', 'public');
+            $validated['photo_proof'] = $path;
+        }
+
+        $delivery->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status da entrega atualizado com sucesso',
+            'data' => [
+                'delivery' => $delivery->fresh()
+            ]
+        ]);
+    }
 } 

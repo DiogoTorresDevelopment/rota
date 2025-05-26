@@ -34,6 +34,8 @@ class RouteRequest extends FormRequest
                 'origin.city' => 'required|string|max:255',
                 'origin.street' => 'required|string|max:255',
                 'origin.number' => 'required|string|max:20',
+                'origin.latitude' => 'nullable|numeric|between:-90,90',
+                'origin.longitude' => 'nullable|numeric|between:-180,180',
                 
                 'destination.name' => 'required|string|max:255',
                 'destination.cep' => 'required|string|size:9',
@@ -41,6 +43,8 @@ class RouteRequest extends FormRequest
                 'destination.city' => 'required|string|max:255',
                 'destination.street' => 'required|string|max:255',
                 'destination.number' => 'required|string|max:20',
+                'destination.latitude' => 'nullable|numeric|between:-90,90',
+                'destination.longitude' => 'nullable|numeric|between:-180,180',
             ],
             
             // Step 3 - Destinos intermediários
@@ -53,6 +57,8 @@ class RouteRequest extends FormRequest
                 'stops.*.street' => 'required|string|max:255',
                 'stops.*.number' => 'required|string|max:20',
                 'stops.*.order' => 'required|integer|min:1',
+                'stops.*.latitude' => 'nullable|numeric|between:-90,90',
+                'stops.*.longitude' => 'nullable|numeric|between:-180,180',
             ],
         ];
 
