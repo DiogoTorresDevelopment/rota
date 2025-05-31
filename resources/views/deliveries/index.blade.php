@@ -16,13 +16,13 @@
     </div>
 
     @if(hasPermission('deliveries.manage'))
-    <a href="{{ route('deliveries.create') }}" 
+    <button onclick="openRouteModal()" 
        class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
         Adicionar
-    </a>
+    </button>
     @endif
   </div>
 

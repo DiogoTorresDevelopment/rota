@@ -28,6 +28,12 @@ class DeliveryController extends Controller
         return view('deliveries.index', compact('deliveries', 'availableRoutes'));
     }
 
+    public function create()
+    {
+        $availableRoutes = $this->deliveryService->getAvailableRoutes();
+        return view('deliveries.create', compact('availableRoutes'));
+    }
+
     public function store(StoreDeliveryRequest $request)
     {
         try {

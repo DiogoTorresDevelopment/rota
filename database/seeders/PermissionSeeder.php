@@ -27,25 +27,48 @@ class PermissionSeeder extends Seeder
         ];
 
         foreach ($modules as $module => $name) {
-            // Permissão de visualização
-            DB::table('permissions')->insert([
-                'name' => "Ver {$name}",
-                'slug' => "{$module}.view",
-                'description' => "Visualizar lista de {$name}",
-                'type' => 'management',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
 
-            // Permissão de gerenciamento
-            DB::table('permissions')->insert([
-                'name' => "Gerenciar {$name}",
-                'slug' => "{$module}.manage",
-                'description' => "Adicionar, editar e remover {$name}",
-                'type' => 'management',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
+            if($module == 'deliveries' || $module == 'routes') {
+                DB::table('permissions')->insert([
+                    'name' => "Ver {$name}",
+                    'slug' => "{$module}.view",
+                    'description' => "Visualizar lista de {$name}",
+                    'type' => 'operational',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+    
+                // Permissão de gerenciamento
+                DB::table('permissions')->insert([
+                    'name' => "Gerenciar {$name}",
+                    'slug' => "{$module}.manage",
+                    'description' => "Adicionar, editar e remover {$name}",
+                    'type' => 'operational',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            } else{
+            
+                // Permissão de visualização
+                DB::table('permissions')->insert([
+                    'name' => "Ver {$name}",
+                    'slug' => "{$module}.view",
+                    'description' => "Visualizar lista de {$name}",
+                    'type' => 'management',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+
+                // Permissão de gerenciamento
+                DB::table('permissions')->insert([
+                    'name' => "Gerenciar {$name}",
+                    'slug' => "{$module}.manage",
+                    'description' => "Adicionar, editar e remover {$name}",
+                    'type' => 'management',
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
+            }
         }
     }
 }
