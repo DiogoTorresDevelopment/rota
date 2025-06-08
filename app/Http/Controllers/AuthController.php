@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -277,5 +278,182 @@ class AuthController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    public function showForgotPasswordForm()
+    {
+        return view('pages.auth.forgot-password');
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status == Password::RESET_LINK_SENT
+            ? back()->with(['status' => __($status)])
+            : back()->withErrors(['email' => __($status)]);
+    }
+
+    public function showResetForm($token)
+    {
+        return view('pages.auth.reset-password', ['token' => $token]);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        return $status == Password::PASSWORD_RESET
+            ? redirect()->route('login')->with('status', __($status))
+            : back()->withErrors(['email' => [__($status)]]);
+    }
+
+    protected function createJwtToken($user)
+    {
+        $header = ['alg' => 'HS256', 'typ' => 'JWT'];
+        $payload = [
+            'sub' => $user->id,
+            'email' => $user->email,
+            'iat' => time(),
+            'exp' => time() + 3600,
+        ];
+
+        $base64Header = rtrim(strtr(base64_encode(json_encode($header)), '+/', '-_'), '=');
+        $base64Payload = rtrim(strtr(base64_encode(json_encode($payload)), '+/', '-_'), '=');
+        $signature = hash_hmac('sha256', $base64Header . '.' . $base64Payload, env('JWT_SECRET'), true);
+        $base64Signature = rtrim(strtr(base64_encode($signature), '+/', '-_'), '=');
+
+        return $base64Header . '.' . $base64Payload . '.' . $base64Signature;
+    }
+
+    public function apiLoginJwt(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Credenciais inválidas',
+            ], 401);
+        }
+
+        if (!$user->status) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Conta desativada',
+            ], 403);
+        }
+
+        $token = $this->createJwtToken($user);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
+            ],
+        ]);
+    }
+
+    public function apiRegisterJwt(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'status' => true,
+        ]);
+
+        $token = $this->createJwtToken($user);
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
+            ],
+        ], 201);
+    }
+
+    public function apiForgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        $status = Password::sendResetLink($request->only('email'));
+
+        return $status == Password::RESET_LINK_SENT
+            ? response()->json(['success' => true, 'message' => __($status)])
+            : response()->json(['success' => false, 'message' => __($status)], 400);
+    }
+
+    public function apiResetPassword(Request $request)
+    {
+        $request->validate([
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => 'required|confirmed|min:8',
+        ]);
+
+        $user = null;
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($u, $password) use (&$user) {
+                $user = $u;
+                $u->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+            }
+        );
+
+        if ($status == Password::PASSWORD_RESET) {
+            $token = $this->createJwtToken($user);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'token' => $token,
+                ],
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => __($status),
+        ], 400);
     }
 }
