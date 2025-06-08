@@ -280,6 +280,11 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * Display the password reset request form.
+     *
+     * @return \Illuminate\View\View
+     */
     public function showForgotPasswordForm()
     {
         return view('pages.auth.forgot-password');
