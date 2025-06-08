@@ -21,6 +21,10 @@ use App\Http\Controllers\DeliveryController;
 // Public routes - Sem middleware de autenticação
 Route::post('/login/driver', [AuthController::class, 'apiDriverLogin'])->name('api.driver.login');
 Route::post('/login', [AuthController::class, 'apiLogin'])->name('api.login');
+Route::post('/login-jwt', [AuthController::class, 'apiLoginJwt'])->name('api.login.jwt');
+Route::post('/register-jwt', [AuthController::class, 'apiRegisterJwt'])->name('api.register.jwt');
+Route::post('/password/forgot', [AuthController::class, 'apiForgotPassword'])->name('api.password.forgot');
+Route::post('/password/reset', [AuthController::class, 'apiResetPassword'])->name('api.password.reset');
 Route::get('/check-auth', [AuthController::class, 'checkAuth'])->name('api.check.auth');
 
 // Protected routes - Com middleware de autenticação

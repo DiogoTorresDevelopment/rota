@@ -11,9 +11,13 @@ class Delivery extends Model
 
     protected $fillable = [
         'route_id',
+        'driver_id',
+        'truck_id',
+        'trailer_id',
         'status',
         'start_date',
-        'end_date'
+        'end_date',
+        'notes'
     ];
 
     protected $casts = [
@@ -25,4 +29,19 @@ class Delivery extends Model
     {
         return $this->belongsTo(Route::class);
     }
-} 
+
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+
+    public function truck()
+    {
+        return $this->belongsTo(Truck::class);
+    }
+
+    public function trailer()
+    {
+        return $this->belongsTo(Trailer::class);
+    }
+}
