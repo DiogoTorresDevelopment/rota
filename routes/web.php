@@ -29,6 +29,12 @@ Route::get('login', function () {
 
 Route::post('login', [AuthController::class, 'login'])->name('login.submit');
 
+// Recuperação de senha
+Route::get('forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email');
+Route::get('reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
 Route::get('register', function () { return view('pages.auth.register'); })->name('register');
 
 Route::post('register', [AuthController::class, 'register'])->name('register.submit');
