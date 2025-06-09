@@ -42,6 +42,11 @@ class Driver extends Authenticatable
         return $this->hasMany(DriverDocument::class);
     }
 
+    public function deliveries()
+    {
+        return $this->hasMany(Delivery::class);
+    }
+
     public function setPasswordAttribute($value)
     {
         $this->attributes['password'] = bcrypt($value);
