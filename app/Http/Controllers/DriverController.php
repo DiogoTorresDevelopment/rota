@@ -293,4 +293,9 @@ class DriverController extends Controller
             'driver' => $driver->fresh()
         ]);
     }
+
+    public function show(Driver $driver)
+    {
+        return view('drivers.show', compact('driver'));
+    }
 } 
