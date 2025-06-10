@@ -104,8 +104,7 @@ class DeliveryController extends Controller
     {
         try {
             $delivery->load(['driver','truck','carrocerias','currentStop.routeStop','route.stops']);
-            $delivery->load(['driver','truck','carroceria','route.stops']);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => new DeliveryResource($delivery)

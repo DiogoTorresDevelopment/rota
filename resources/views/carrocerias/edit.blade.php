@@ -21,19 +21,6 @@
       <div class="mb-4">
         <label for="peso_suportado" class="block text-sm font-medium text-gray-700 mb-2">Peso Suportado (kg)</label>
         <input type="number" step="0.01" name="peso_suportado" id="peso_suportado" value="{{ $carroceria->peso_suportado }}" class="w-full h-12 px-4 rounded-lg border-gray-300" required>
-        <input type="text" name="descricao" id="descricao" value="{{ $carroceria->descricao }}" class="w-full h-12 px-4 rounded-lg border-gray-300" required placeholder="Ex: Baú Frigorífico">
-      </div>
-      <div class="mb-4">
-        <label for="chassi" class="block text-sm font-medium text-gray-700 mb-2">Chassi</label>
-        <input type="text" name="chassi" id="chassi" maxlength="17" value="{{ $carroceria->chassi }}" class="w-full h-12 px-4 rounded-lg border-gray-300" required pattern="[A-Za-z0-9]{1,17}" placeholder="Ex: 9BWZZZ377VT004251">
-      </div>
-      <div class="mb-4">
-        <label for="placa" class="block text-sm font-medium text-gray-700 mb-2">Placa</label>
-        <input type="text" name="placa" id="placa" maxlength="7" value="{{ $carroceria->placa }}" class="w-full h-12 px-4 rounded-lg border-gray-300 uppercase" required pattern="[A-Z]{3}[0-9][A-Z0-9][0-9]{2}" placeholder="AAA0A00 ou AAA0000">
-      </div>
-      <div class="mb-4">
-        <label for="peso_suportado" class="block text-sm font-medium text-gray-700 mb-2">Peso Suportado (kg)</label>
-        <input type="text" name="peso_suportado" id="peso_suportado" value="{{ $carroceria->peso_suportado }}" class="w-full h-12 px-4 rounded-lg border-gray-300" required placeholder="Ex: 12000">
       </div>
       <div class="mb-4">
         <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>

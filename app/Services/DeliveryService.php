@@ -60,7 +60,6 @@ class DeliveryService
                 'route_id' => $route->id,
                 'driver_id' => $driverId,
                 'truck_id' => $truckId,
-                'carroceria_id' => $carroceriaId,
                 'status' => 'in_progress',
                 'start_date' => now()
             ]);
