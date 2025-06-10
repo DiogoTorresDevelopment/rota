@@ -16,13 +16,13 @@
     </div>
 
     @if(hasPermission('deliveries.manage'))
-    <button onclick="openRouteModal()" 
+    <a href="{{ route('deliveries.create') }}"
        class="flex items-center px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300">
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
         </svg>
         Adicionar
-    </button>
+    </a>
     @endif
   </div>
 
@@ -76,7 +76,7 @@
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 text-gray-600">{{ $delivery->id }}</td>
               <td class="px-6 py-4 text-gray-900">{{ optional($delivery->route)->name ?? 'Rota Excluída' }}</td>
-              <td class="px-6 py-4 text-gray-600">{{ optional(optional($delivery->route)->driver)->name ?? 'Motorista não encontrado' }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ optional($delivery->driver)->name ?? 'Motorista não encontrado' }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $delivery->start_date?->format('d/m/Y') }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $delivery->end_date?->format('d/m/Y') }}</td>
               <td class="px-6 py-4">
@@ -144,48 +144,6 @@
   </div>
 </div>
 
-<!-- Modal de Seleção de Rota -->
-<div id="route-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden" style="z-index: 1000;">
-  <div class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full">
-      <div class="p-6">
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-medium text-gray-900">Selecionar Rota</h3>
-          <button type="button" onclick="closeRouteModal()" class="text-gray-400 hover:text-gray-500">
-            <span class="sr-only">Fechar</span>
-            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
-        </div>
-
-        <form id="route-form" method="POST" action="{{ route('deliveries.store') }}">
-          @csrf
-          <div class="mt-4">
-            <select id="route_id" name="route_id" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" required>
-              <option value="">Selecione uma rota</option>
-              @foreach($availableRoutes as $route)
-                <option value="{{ $route->id }}">{{ $route->name }} - {{ optional($route->driver)->name ?? 'Motorista não encontrado' }}</option>
-              @endforeach
-            </select>
-          </div>
-
-          <div class="mt-6 flex justify-end space-x-3">
-            <button type="button" 
-                    onclick="closeRouteModal()"
-                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">
-              Cancelar
-            </button>
-            <button type="submit" 
-                    class="px-4 py-2 text-sm font-medium text-white bg-[#111928] border border-transparent rounded-md shadow-sm hover:bg-[#1a2438]">
-              Iniciar Rota
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Modal de Detalhes da Entrega -->
 <div id="delivery-details-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden" style="z-index: 1000;">
@@ -246,53 +204,7 @@
 
 @push('custom-scripts')
 <script>
-function openRouteModal() {
-  document.getElementById('route-modal').classList.remove('hidden');
-}
 
-function closeRouteModal() {
-  document.getElementById('route-modal').classList.add('hidden');
-}
-
-// Captura o submit do formulário
-document.getElementById('route-form').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  try {
-    const formData = new FormData(this);
-    
-    const response = await fetch(this.action, {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        'Accept': 'application/json'
-      }
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      await Swal.fire({
-        icon: 'success',
-        title: 'Sucesso!',
-        text: data.message || 'Rota iniciada com sucesso!',
-        confirmButtonColor: '#3085d6'
-      });
-      window.location.reload();
-    } else {
-      throw new Error(data.message || 'Erro ao iniciar rota');
-    }
-  } catch (error) {
-    console.error('Erro:', error);
-    await Swal.fire({
-      icon: 'error',
-      title: 'Erro!',
-      text: 'Erro ao iniciar rota: ' + error.message,
-      confirmButtonColor: '#d33'
-    });
-  }
-});
 
 // Atualizar as cores nos SweetAlert2
 const sweetAlertConfig = {
@@ -424,7 +336,7 @@ async function viewDeliveryDetails(deliveryId) {
                     <span class="font-medium">Nome da Rota:</span> ${data.data.route ? data.data.route.name : 'Rota Excluída'}
                 </div>
                 <div>
-                    <span class="font-medium">Motorista:</span> ${data.data.route && data.data.route.driver ? data.data.route.driver.name : 'Motorista não encontrado'}
+                    <span class="font-medium">Motorista:</span> ${data.data.driver ? data.data.driver.name : 'Motorista não encontrado'}
                 </div>
                 <div>
                     <span class="font-medium">Data Início:</span> ${data.data.start_date || 'N/A'}
