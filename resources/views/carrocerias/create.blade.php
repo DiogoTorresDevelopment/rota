@@ -7,6 +7,19 @@
       @csrf
       <div class="mb-4">
         <label for="descricao" class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
+        <input type="text" name="descricao" id="descricao" class="w-full h-12 px-4 rounded-lg border-gray-300" required>
+      </div>
+      <div class="mb-4">
+        <label for="chassi" class="block text-sm font-medium text-gray-700 mb-2">Chassi</label>
+        <input type="text" name="chassi" id="chassi" class="w-full h-12 px-4 rounded-lg border-gray-300" required>
+      </div>
+      <div class="mb-4">
+        <label for="placa" class="block text-sm font-medium text-gray-700 mb-2">Placa</label>
+        <input type="text" name="placa" id="placa" class="w-full h-12 px-4 rounded-lg border-gray-300 uppercase" required>
+      </div>
+      <div class="mb-4">
+        <label for="peso_suportado" class="block text-sm font-medium text-gray-700 mb-2">Peso Suportado (kg)</label>
+        <input type="number" step="0.01" name="peso_suportado" id="peso_suportado" class="w-full h-12 px-4 rounded-lg border-gray-300" required>
         <input type="text" name="descricao" id="descricao" class="w-full h-12 px-4 rounded-lg border-gray-300" required placeholder="Ex: Baú Frigorífico">
       </div>
       <div class="mb-4">

@@ -46,6 +46,7 @@ class DeliveryController extends Controller
                 $request->route_id,
                 $request->driver_id,
                 $request->truck_id,
+                $request->carroceria_ids
                 $request->carroceria_id
             );
             
@@ -101,6 +102,7 @@ class DeliveryController extends Controller
     public function details(Delivery $delivery)
     {
         try {
+            $delivery->load(['driver','truck','carrocerias','currentStop.routeStop','route.stops']);
             $delivery->load(['driver','truck','carroceria','route.stops']);
             
             return response()->json([
@@ -265,4 +267,36 @@ class DeliveryController extends Controller
             ]
         ]);
     }
-} 
+
+    public function changeResources(Request $request, Delivery $delivery)
+    {
+        $validated = $request->validate([
+            'driver_id' => 'required|exists:drivers,id',
+            'truck_id' => 'required|exists:trucks,id',
+            'carroceria_ids' => 'required|array|min:1',
+            'carroceria_ids.*' => 'exists:carrocerias,id',
+        ]);
+
+        $delivery = $this->deliveryService->changeResources($delivery, $validated['driver_id'], $validated['truck_id'], $validated['carroceria_ids']);
+
+        return response()->json(['success' => true, 'data' => new DeliveryResource($delivery)]);
+    }
+
+    public function completeStop(Delivery $delivery)
+    {
+        $delivery = $this->deliveryService->completeCurrentStop($delivery);
+        return response()->json(['success' => true, 'data' => new DeliveryResource($delivery)]);
+    }
+
+    public function cancel(Delivery $delivery)
+    {
+        $delivery = $this->deliveryService->cancelDelivery($delivery);
+        return response()->json(['success' => true, 'data' => new DeliveryResource($delivery)]);
+    }
+
+    public function history(Delivery $delivery)
+    {
+        $history = $this->deliveryService->getHistory($delivery);
+        return response()->json(['success' => true, 'data' => $history]);
+    }
+}

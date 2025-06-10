@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Delivery;
 use App\Models\Route;
+use App\Models\DeliveryStop;
+use App\Models\DeliveryHistory;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -31,6 +33,7 @@ class DeliveryService
             ->get();
     }
 
+    public function startDelivery($routeId, $driverId, $truckId, array $carroceriaIds)
     public function startDelivery($routeId, $driverId, $truckId, $carroceriaId = null)
     {
         try {
@@ -63,6 +66,30 @@ class DeliveryService
                 'start_date' => now()
             ]);
 
+            // cria paradas
+            $firstStopId = null;
+            foreach ($route->stops()->orderBy('order')->get() as $stop) {
+                $deliveryStop = DeliveryStop::create([
+                    'delivery_id' => $delivery->id,
+                    'route_stop_id' => $stop->id,
+                    'order' => $stop->order,
+                ]);
+                if (!$firstStopId) {
+                    $firstStopId = $deliveryStop->id;
+                }
+            }
+            $delivery->update(['current_delivery_stop_id' => $firstStopId]);
+
+            // vincula carrocerias
+            $delivery->carrocerias()->sync($carroceriaIds);
+
+            DeliveryHistory::create([
+                'delivery_id' => $delivery->id,
+                'driver_id' => $driverId,
+                'truck_id' => $truckId,
+                'carroceria_ids' => $carroceriaIds,
+            ]);
+
             // Log do sucesso
             \Log::info('Nova entrega criada', ['delivery' => $delivery]);
 
@@ -77,6 +104,67 @@ class DeliveryService
             ]);
             throw $e;
         }
+    }
+
+    public function changeResources(Delivery $delivery, $driverId, $truckId, array $carroceriaIds)
+    {
+        return DB::transaction(function () use ($delivery, $driverId, $truckId, $carroceriaIds) {
+            $delivery->update([
+                'driver_id' => $driverId,
+                'truck_id' => $truckId,
+            ]);
+            $delivery->carrocerias()->sync($carroceriaIds);
+
+            DeliveryHistory::create([
+                'delivery_id' => $delivery->id,
+                'delivery_stop_id' => $delivery->current_delivery_stop_id,
+                'driver_id' => $driverId,
+                'truck_id' => $truckId,
+                'carroceria_ids' => $carroceriaIds,
+            ]);
+
+            return $delivery->refresh();
+        });
+    }
+
+    public function completeCurrentStop(Delivery $delivery)
+    {
+        return DB::transaction(function () use ($delivery) {
+            $current = $delivery->currentStop;
+            if (!$current) {
+                return $delivery;
+            }
+
+            $current->update([
+                'status' => 'completed',
+                'completed_at' => now(),
+            ]);
+
+            $next = $delivery->deliveryStops()->where('order', '>', $current->order)->orderBy('order')->first();
+            if ($next) {
+                $delivery->update(['current_delivery_stop_id' => $next->id]);
+            } else {
+                $this->completeDelivery($delivery);
+            }
+
+            return $delivery->refresh();
+        });
+    }
+
+    public function cancelDelivery(Delivery $delivery)
+    {
+        return DB::transaction(function () use ($delivery) {
+            $delivery->update([
+                'status' => 'cancelled',
+                'end_date' => now(),
+            ]);
+            return $delivery;
+        });
+    }
+
+    public function getHistory(Delivery $delivery)
+    {
+        return $delivery->histories()->with('deliveryStop.routeStop')->orderBy('created_at')->get();
     }
 
     public function completeDelivery(Delivery $delivery)

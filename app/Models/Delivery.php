@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Carroceria;
+use App\Models\DeliveryStop;
+use App\Models\DeliveryHistory;
 
 class Delivery extends Model
 {
@@ -15,6 +17,7 @@ class Delivery extends Model
         'driver_id',
         'truck_id',
         'trailer_id',
+        'current_delivery_stop_id',
         'carroceria_id',
         'status',
         'start_date',
@@ -47,6 +50,24 @@ class Delivery extends Model
         return $this->belongsTo(Trailer::class);
     }
 
+    public function carrocerias()
+    {
+        return $this->belongsToMany(Carroceria::class);
+    }
+
+    public function deliveryStops()
+    {
+        return $this->hasMany(DeliveryStop::class);
+    }
+
+    public function currentStop()
+    {
+        return $this->belongsTo(DeliveryStop::class, 'current_delivery_stop_id');
+    }
+
+    public function histories()
+    {
+        return $this->hasMany(DeliveryHistory::class);
     public function carroceria()
     {
         return $this->belongsTo(Carroceria::class);

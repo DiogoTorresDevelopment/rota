@@ -28,6 +28,7 @@ class CarroceriaController extends Controller
 
     public function store(Request $request)
     {
+
         $input = $request->all();
         // Normaliza o campo peso_suportado para float
         if (isset($input['peso_suportado'])) {
@@ -40,6 +41,7 @@ class CarroceriaController extends Controller
             'placa' => 'required|string|max:8|unique:carrocerias,placa',
             'peso_suportado' => 'required|numeric',
             'status' => 'required|boolean'
+        ]);
         ])->validate();
 
         $carroceria = $this->carroceriaService->store($validated);

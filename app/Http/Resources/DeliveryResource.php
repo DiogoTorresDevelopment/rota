@@ -22,6 +22,19 @@ class DeliveryResource extends JsonResource
                 'marca' => $this->truck->marca,
                 'modelo' => $this->truck->modelo,
             ] : null,
+            'carrocerias' => $this->carrocerias->map(function($c){
+                return [
+                    'id' => $c->id,
+                    'descricao' => $c->descricao,
+                    'chassi' => $c->chassi,
+                    'placa' => $c->placa,
+                    'peso_suportado' => $c->peso_suportado,
+                ];
+            }),
+            'current_stop' => $this->currentStop ? [
+                'id' => $this->currentStop->id,
+                'order' => $this->currentStop->order,
+                'name' => $this->currentStop->routeStop->name,
             'carroceria' => $this->carroceria ? [
                 'id' => $this->carroceria->id,
                 'descricao' => $this->carroceria->descricao,
@@ -46,3 +59,4 @@ class DeliveryResource extends JsonResource
         ];
     }
 }
+

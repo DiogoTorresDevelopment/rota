@@ -17,6 +17,8 @@ class StoreDeliveryRequest extends FormRequest
             'route_id' => 'required|exists:routes,id',
             'driver_id' => 'required|exists:drivers,id',
             'truck_id' => 'required|exists:trucks,id',
+            'carroceria_ids' => 'required|array|min:1',
+            'carroceria_ids.*' => 'exists:carrocerias,id'
             'carroceria_id' => 'nullable|exists:carrocerias,id'
         ];
     }
@@ -30,6 +32,8 @@ class StoreDeliveryRequest extends FormRequest
             'driver_id.exists' => 'Motorista inválido',
             'truck_id.required' => 'O caminhão é obrigatório',
             'truck_id.exists' => 'Caminhão inválido',
+            'carroceria_ids.required' => 'É necessário selecionar ao menos uma carroceria',
+            'carroceria_ids.*.exists' => 'Carroceria inválida'
             'carroceria_id.exists' => 'Carroceria inválida'
         ];
     }
