@@ -22,7 +22,7 @@ class DeliveryService
     public function getAvailableRoutes()
     {
         // Busca rotas que estão ativas e não têm entregas em andamento
-        return Route::with('driver')
+        return Route::query()
             ->where('status', 'active')
             ->whereNull('deleted_at')
             ->whereDoesntHave('deliveries', function($query) {
@@ -31,7 +31,7 @@ class DeliveryService
             ->get();
     }
 
-    public function startDelivery($routeId)
+    public function startDelivery($routeId, $driverId, $truckId, $carroceriaId = null)
     {
         try {
             DB::beginTransaction();
@@ -56,6 +56,9 @@ class DeliveryService
 
             $delivery = Delivery::create([
                 'route_id' => $route->id,
+                'driver_id' => $driverId,
+                'truck_id' => $truckId,
+                'carroceria_id' => $carroceriaId,
                 'status' => 'in_progress',
                 'start_date' => now()
             ]);

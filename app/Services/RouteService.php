@@ -25,8 +25,6 @@ class RouteService
                 [
                     'name' => $data['name'],
                     'start_date' => $data['start_date'],
-                    'driver_id' => $data['driver_id'],
-                    'truck_id' => $data['truck_id'],
                     'current_mileage' => $data['current_mileage'],
                     'status' => 'draft'
                 ]

@@ -10,12 +10,39 @@
                 </div>
                 <div class="card-body">
                     <form id="createDeliveryForm">
-                        <div class="form-group">
+                        <div class="form-group mb-4">
                             <label for="route_id">Rota</label>
                             <select class="form-control" id="route_id" name="route_id" required>
                                 <option value="">Selecione uma rota</option>
                                 @foreach($availableRoutes as $route)
                                     <option value="{{ $route->id }}">{{ $route->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="driver_id">Motorista</label>
+                            <select class="form-control" id="driver_id" name="driver_id" required>
+                                <option value="">Selecione</option>
+                                @foreach($drivers as $driver)
+                                    <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="truck_id">Caminhão</label>
+                            <select class="form-control" id="truck_id" name="truck_id" required>
+                                <option value="">Selecione</option>
+                                @foreach($trucks as $truck)
+                                    <option value="{{ $truck->id }}">{{ $truck->marca }} - {{ $truck->modelo }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group mb-4">
+                            <label for="carroceria_id">Carroceria</label>
+                            <select class="form-control" id="carroceria_id" name="carroceria_id">
+                                <option value="">Opcional</option>
+                                @foreach($carrocerias as $carroceria)
+                                    <option value="{{ $carroceria->id }}">{{ $carroceria->descricao }}</option>
                                 @endforeach
                             </select>
                         </div>

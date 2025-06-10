@@ -76,7 +76,7 @@
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 text-gray-600">{{ $delivery->id }}</td>
               <td class="px-6 py-4 text-gray-900">{{ optional($delivery->route)->name ?? 'Rota Excluída' }}</td>
-              <td class="px-6 py-4 text-gray-600">{{ optional(optional($delivery->route)->driver)->name ?? 'Motorista não encontrado' }}</td>
+              <td class="px-6 py-4 text-gray-600">{{ optional($delivery->driver)->name ?? 'Motorista não encontrado' }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $delivery->start_date?->format('d/m/Y') }}</td>
               <td class="px-6 py-4 text-gray-600">{{ $delivery->end_date?->format('d/m/Y') }}</td>
               <td class="px-6 py-4">
@@ -165,7 +165,7 @@
             <select id="route_id" name="route_id" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" required>
               <option value="">Selecione uma rota</option>
               @foreach($availableRoutes as $route)
-                <option value="{{ $route->id }}">{{ $route->name }} - {{ optional($route->driver)->name ?? 'Motorista não encontrado' }}</option>
+                <option value="{{ $route->id }}">{{ $route->name }}</option>
               @endforeach
             </select>
           </div>
@@ -424,7 +424,7 @@ async function viewDeliveryDetails(deliveryId) {
                     <span class="font-medium">Nome da Rota:</span> ${data.data.route ? data.data.route.name : 'Rota Excluída'}
                 </div>
                 <div>
-                    <span class="font-medium">Motorista:</span> ${data.data.route && data.data.route.driver ? data.data.route.driver.name : 'Motorista não encontrado'}
+                    <span class="font-medium">Motorista:</span> ${data.data.driver ? data.data.driver.name : 'Motorista não encontrado'}
                 </div>
                 <div>
                     <span class="font-medium">Data Início:</span> ${data.data.start_date || 'N/A'}
