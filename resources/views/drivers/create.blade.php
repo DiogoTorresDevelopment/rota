@@ -15,8 +15,8 @@
   <div class="bg-white rounded-lg shadow-sm">
     <div class="p-6">
       <div class="mb-6">
-        <h2 class="text-xl font-semibold text-gray-900">Dados do motorista</h2>
-        <p class="mt-1 text-sm text-gray-600">Estas informações serão utilizadas dentro do sistema.</p>
+        <h2 class="text-xl font-semibold text-gray-900">Novo Motorista</h2>
+        <p class="mt-1 text-sm text-gray-600">reencha as informações para cadastrar um novo motorista.</p>
       </div>
 
       <!-- Tabs para Mobile -->

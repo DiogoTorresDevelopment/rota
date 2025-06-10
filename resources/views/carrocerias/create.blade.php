@@ -1,39 +1,95 @@
 @extends('layout.master')
 
 @section('content')
-<div class="h-full flex flex-col">
-  <div class="bg-white rounded-lg shadow-sm p-6">
-    <form action="{{ route('carrocerias.store') }}" method="POST">
-      @csrf
-      <div class="mb-4">
-        <label for="descricao" class="block text-sm font-medium text-gray-700 mb-2">Descrição</label>
-        <input type="text" name="descricao" id="descricao" class="w-full h-12 px-4 rounded-lg border-gray-300" required>
+<div class="flex flex-col">
+  <!-- Card Principal -->
+  <div class="bg-white rounded-lg shadow-sm">
+    <div class="p-6">
+      <div class="mb-6">
+        <h2 class="text-xl font-semibold text-gray-900">Nova Carroceria</h2>
+        <p class="mt-1 text-sm text-gray-600">Preencha as informações para cadastrar uma nova carroceria.</p>
       </div>
-      <div class="mb-4">
-        <label for="chassi" class="block text-sm font-medium text-gray-700 mb-2">Chassi</label>
-        <input type="text" name="chassi" id="chassi" class="w-full h-12 px-4 rounded-lg border-gray-300" required>
-      </div>
-      <div class="mb-4">
-        <label for="placa" class="block text-sm font-medium text-gray-700 mb-2">Placa</label>
-        <input type="text" name="placa" id="placa" class="w-full h-12 px-4 rounded-lg border-gray-300 uppercase" required>
-      </div>
-      <div class="mb-4">
-        <label for="peso_suportado" class="block text-sm font-medium text-gray-700 mb-2">Peso Suportado (kg)</label>
-        <input type="text" name="peso_suportado" id="peso_suportado" class="w-full h-12 px-4 rounded-lg border-gray-300" required placeholder="Ex: 12000">
-      </div>
-      <div class="mb-4">
-        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-        <select name="status" id="status" class="w-full h-12 px-4 rounded-lg border-gray-300">
-          <option value="1">Ativa</option>
-          <option value="0">Inativa</option>
-        </select>
-      </div>
-      <button type="submit" class="px-4 py-2 bg-gray-900 text-white rounded-lg">Salvar</button>
-    </form>
+
+      <form action="{{ route('carrocerias.store') }}" method="POST">
+        @csrf
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label for="descricao" class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
+            <input type="text" 
+                   name="descricao" 
+                   id="descricao" 
+                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('descricao') border-red-500 @enderror" 
+                   required>
+            @error('descricao')
+              <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+          </div>
+
+          <div>
+            <label for="chassi" class="block text-sm font-medium text-gray-700 mb-1">Chassi</label>
+            <input type="text" 
+                   name="chassi" 
+                   id="chassi" 
+                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('chassi') border-red-500 @enderror" 
+                   required>
+            @error('chassi')
+              <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+          </div>
+
+          <div>
+            <label for="placa" class="block text-sm font-medium text-gray-700 mb-1">Placa</label>
+            <input type="text" 
+                   name="placa" 
+                   id="placa" 
+                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('placa') border-red-500 @enderror uppercase" 
+                   required>
+            @error('placa')
+              <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+          </div>
+
+          <div>
+            <label for="peso_suportado" class="block text-sm font-medium text-gray-700 mb-1">Peso Suportado (kg)</label>
+            <input type="number" 
+                   step="0.01" 
+                   name="peso_suportado" 
+                   id="peso_suportado" 
+                   class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500 @error('peso_suportado') border-red-500 @enderror" 
+                   required 
+                   placeholder="Ex: 12000">
+            @error('peso_suportado')
+              <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+          </div>
+
+          <div>
+            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+            <select name="status" 
+                    id="status" 
+                    class="w-full rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+              <option value="1">Ativa</option>
+              <option value="0">Inativa</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="flex justify-end space-x-2 mt-6">
+          <a href="{{ route('carrocerias.index') }}" 
+             class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Cancelar
+          </a>
+          <button type="submit" 
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            Cadastrar
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 @endsection
-
 
 @push('custom-scripts')
 <script>
@@ -44,6 +100,7 @@ if (chassiInput) {
     this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').substr(0, 17);
   });
 }
+
 // Máscara para placa: Mercosul (AAA0A00) ou antigo (AAA0000)
 const placaInput = document.getElementById('placa');
 if (placaInput) {
@@ -53,6 +110,7 @@ if (placaInput) {
     this.value = v;
   });
 }
+
 // Máscara para peso: milhar e decimal
 const pesoInput = document.getElementById('peso_suportado');
 if (pesoInput) {

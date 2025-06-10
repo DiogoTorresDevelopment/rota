@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('delivery_stops', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('delivery_id')->constrained('deliveries');
-            $table->foreignId('route_stop_id')->constrained('route_stops');
+            $table->foreignId('delivery_id')->constrained('deliveries')->onDelete('cascade');
+            $table->foreignId('delivery_route_stop_id')->constrained('delivery_route_stops')->onDelete('cascade');
             $table->integer('order');
             $table->enum('status', ['pending','completed'])->default('pending');
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

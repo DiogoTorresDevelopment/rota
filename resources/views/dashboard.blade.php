@@ -100,11 +100,11 @@
           @forelse($activeRoutes as $route)
             <a href="#" class="list-group-item list-group-item-action" onclick="highlightRoute({{ json_encode($route->stops) }})">
               <div class="d-flex w-100 justify-content-between">
-                <h6 class="mb-1">{{ $route->name }}</h6>
-                <small>{{ $route->deliveries->first()?->start_date?->diffForHumans() }}</small>
+                <h6 class="mb-1">{{ $route->name ?? 'Rota sem nome' }}</h6>
+                <small>{{ $route->deliveries->first()?->start_date?->diffForHumans() ?? 'Data não disponível' }}</small>
               </div>
-              <p class="mb-1">Motorista: {{ $route->driver->name }}</p>
-              <small>{{ count($route->stops) }} paradas</small>
+              <p class="mb-1">Motorista: {{ $route->driver?->name ?? 'Motorista não atribuído' }}</p>
+              <small>{{ count($route->stops ?? []) }} paradas</small>
             </a>
           @empty
             <div class="text-center p-3">
@@ -140,10 +140,10 @@
               @foreach($recentDeliveries as $delivery)
                 <tr>
                   <td>{{ $delivery->id }}</td>
-                  <td>{{ $delivery->route->name }}</td>
-                  <td>{{ $delivery->route->driver->name }}</td>
-                  <td>{{ $delivery->start_date?->format('d/m/Y H:i') }}</td>
-                  <td>{{ $delivery->end_date?->format('d/m/Y H:i') }}</td>
+                  <td>{{ $delivery->route?->name ?? 'Rota não encontrada' }}</td>
+                  <td>{{ $delivery->route?->driver?->name ?? 'Motorista não atribuído' }}</td>
+                  <td>{{ $delivery->start_date?->format('d/m/Y H:i') ?? 'Não iniciada' }}</td>
+                  <td>{{ $delivery->end_date?->format('d/m/Y H:i') ?? 'Não finalizada' }}</td>
                   <td>
                     <span class="badge bg-{{ $delivery->status === 'completed' ? 'success' : ($delivery->status === 'in_progress' ? 'primary' : 'danger') }}">
                       {{ $delivery->status === 'completed' ? 'Finalizada' : ($delivery->status === 'in_progress' ? 'Em andamento' : 'Cancelada') }}
@@ -156,11 +156,11 @@
                         ($delivery->status === 'in_progress' ? 'bg-primary' : 'bg-danger') 
                       }}" 
                            role="progressbar" 
-                           style="width: {{ $delivery->progress }}%" 
-                           aria-valuenow="{{ $delivery->progress }}" 
+                           style="width: {{ $delivery->progress ?? 0 }}%" 
+                           aria-valuenow="{{ $delivery->progress ?? 0 }}" 
                            aria-valuemin="0" 
                            aria-valuemax="100">
-                        {{ $delivery->progress }}%
+                        {{ $delivery->progress ?? 0 }}%
                       </div>
                     </div>
                   </td>

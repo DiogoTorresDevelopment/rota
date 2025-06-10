@@ -13,7 +13,9 @@ class Route extends Model
         'name',
         'start_date',
         'current_mileage',
-        'status'
+        'status',
+        'driver_id',
+        'truck_id'
     ];
 
     protected $casts = [
@@ -22,6 +24,15 @@ class Route extends Model
     ];
 
     // Relacionamentos
+    public function driver()
+    {
+        return $this->belongsTo(Driver::class);
+    }
+
+    public function truck()
+    {
+        return $this->belongsTo(Truck::class);
+    }
 
     public function addresses()
     {
@@ -40,7 +51,7 @@ class Route extends Model
 
     public function deliveries()
     {
-        return $this->hasMany(Delivery::class);
+        return $this->hasMany(Delivery::class, 'original_route_id');
     }
 
     // Métodos auxiliares

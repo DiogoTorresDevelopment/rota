@@ -14,11 +14,13 @@ class DashboardController extends Controller
     {
         try {
             // Rotas ativas com suas paradas e entregas
-            $activeRoutes = Route::with(['stops', 'driver', 'deliveries'])
-                ->whereHas('deliveries', function($query) {
-                    $query->where('status', 'in_progress');
-                })
-                ->get();
+            $activeRoutes = Route::with(['stops', 'driver', 'deliveries' => function($query) {
+                $query->where('status', 'in_progress');
+            }])
+            ->whereHas('deliveries', function($query) {
+                $query->where('status', 'in_progress');
+            })
+            ->get();
 
             $recentDeliveries = Delivery::with(['route.driver'])
                 ->orderBy('created_at', 'desc')

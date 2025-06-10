@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasDeliveryLogs;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Carroceria;
@@ -10,13 +11,12 @@ use App\Models\DeliveryHistory;
 
 class Delivery extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasDeliveryLogs;
 
     protected $fillable = [
-        'route_id',
-        'driver_id',
-        'truck_id',
-        'trailer_id',
+        'original_route_id',
+        'original_driver_id',
+        'original_truck_id',
         'current_delivery_stop_id',
         'status',
         'start_date',
@@ -29,29 +29,41 @@ class Delivery extends Model
         'end_date' => 'datetime'
     ];
 
+    // Relationships with original data
     public function route()
     {
-        return $this->belongsTo(Route::class);
+        return $this->belongsTo(Route::class, 'original_route_id');
     }
 
     public function driver()
     {
-        return $this->belongsTo(Driver::class);
+        return $this->belongsTo(Driver::class, 'original_driver_id');
     }
 
     public function truck()
     {
-        return $this->belongsTo(Truck::class);
+        return $this->belongsTo(Truck::class, 'original_truck_id');
     }
 
-    public function trailer()
+    // Relationships with snapshot data
+    public function deliveryRoute()
     {
-        return $this->belongsTo(Trailer::class);
+        return $this->hasOne(DeliveryRoute::class);
     }
 
-    public function carrocerias()
+    public function deliveryDriver()
     {
-        return $this->belongsToMany(Carroceria::class);
+        return $this->hasOne(DeliveryDriver::class);
+    }
+
+    public function deliveryTruck()
+    {
+        return $this->hasOne(DeliveryTruck::class);
+    }
+
+    public function deliveryCarrocerias()
+    {
+        return $this->hasMany(DeliveryCarroceria::class);
     }
 
     public function deliveryStops()

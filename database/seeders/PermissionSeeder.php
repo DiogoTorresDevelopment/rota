@@ -23,7 +23,8 @@ class PermissionSeeder extends Seeder
             'trucks' => 'Caminhões',
             'routes' => 'Rotas',
             'deliveries' => 'Entregas',
-            'permissions' => 'Permissões'
+            'permissions' => 'Permissões',
+            'carrocerias' => 'Carrocerias'
         ];
 
         foreach ($modules as $module => $name) {

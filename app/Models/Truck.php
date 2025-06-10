@@ -38,6 +38,6 @@ class Truck extends Model
 
     public function deliveries()
     {
-        return $this->hasMany(Delivery::class);
+        return $this->hasMany(Delivery::class, 'original_truck_id');
     }
 }

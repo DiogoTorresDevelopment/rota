@@ -4,8 +4,16 @@ namespace App\Services;
 
 use App\Models\Delivery;
 use App\Models\Route;
+use App\Models\Driver;
+use App\Models\Truck;
+use App\Models\Carroceria;
 use App\Models\DeliveryStop;
 use App\Models\DeliveryHistory;
+use App\Models\DeliveryRoute;
+use App\Models\DeliveryRouteStop;
+use App\Models\DeliveryDriver;
+use App\Models\DeliveryTruck;
+use App\Models\DeliveryCarroceria;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -13,83 +21,196 @@ class DeliveryService
 {
     public function getDeliveries()
     {
-        return Delivery::with(['route.driver'])
-            ->whereHas('route', function($query) {
-                $query->whereNull('deleted_at');
-            })
+        return Delivery::with([
+            'deliveryRoute',
+            'deliveryDriver',
+            'deliveryTruck',
+            'deliveryCarrocerias',  
+            'deliveryStops.deliveryRouteStop'
+        ])
             ->orderBy('created_at', 'desc')
             ->paginate(50);
     }
 
     public function getAvailableRoutes()
     {
-        // Busca rotas que estão ativas e não têm entregas em andamento
+        // Busca rotas que estão ativas
         return Route::query()
             ->where('status', 'active')
             ->whereNull('deleted_at')
+            ->get();
+    }
+
+    public function getAvailableDrivers()
+    {
+        // Busca motoristas que não estão em entregas em andamento
+        return Driver::where('status', true)
             ->whereDoesntHave('deliveries', function($query) {
                 $query->where('status', 'in_progress');
             })
             ->get();
     }
 
-    public function startDelivery($routeId, $driverId, $truckId, array $carroceriaIds)
+    public function getAvailableTrucks()
+    {
+        // Busca caminhões que não estão em entregas em andamento
+        return Truck::where('status', true)
+            ->whereDoesntHave('deliveries', function($query) {
+                $query->where('status', 'in_progress');
+            })
+            ->get();
+    }
+
+    public function getAvailableCarrocerias()
+    {
+        // Busca carrocerias que não estão em entregas em andamento
+        return Carroceria::whereNull('deleted_at')
+            ->whereDoesntHave('deliveries', function($query) {
+                $query->where('status', 'in_progress');
+            })
+            ->get();
+    }
+
+    public function startDelivery($routeId, $driverId, $truckId, array $carroceriaIds, $startDate = null, $endDate = null)
     {
         try {
             DB::beginTransaction();
 
-            $route = Route::findOrFail($routeId);
+            $route = Route::with('stops')->findOrFail($routeId);
+            $driver = Driver::findOrFail($driverId);
+            $truck = Truck::findOrFail($truckId);
+            $carrocerias = Carroceria::whereIn('id', $carroceriaIds)->get();
             
-            // Log para debug
-            \Log::info('Verificando entregas ativas', [
-                'route_id' => $routeId,
-                'active_deliveries' => $route->deliveries()
+            // Verifica se o motorista está disponível
+            $driverInUse = Delivery::where('original_driver_id', $driverId)
                     ->where('status', 'in_progress')
-                    ->get()
-            ]);
+                ->exists();
+            
+            if ($driverInUse) {
+                throw new Exception('Este motorista já está em uma entrega em andamento');
+            }
 
-            $hasActiveDelivery = $route->deliveries()
+            // Verifica se o caminhão está disponível
+            $truckInUse = Delivery::where('original_truck_id', $truckId)
                 ->where('status', 'in_progress')
                 ->exists();
 
-            if ($hasActiveDelivery) {
-                throw new Exception('Esta rota já está em andamento em outra entrega');
+            if ($truckInUse) {
+                throw new Exception('Este caminhão já está em uma entrega em andamento');
             }
 
+            // Verifica se alguma das carrocerias está em uso
+            $carroceriasInUse = Delivery::whereHas('deliveryCarrocerias', function($query) use ($carroceriaIds) {
+                $query->whereIn('carroceria_id', $carroceriaIds);
+            })
+            ->where('status', 'in_progress')
+            ->exists();
+            
+            if ($carroceriasInUse) {
+                throw new Exception('Uma ou mais carrocerias selecionadas já estão em uma entrega em andamento');
+            }
+
+            // Cria a entrega
             $delivery = Delivery::create([
-                'route_id' => $route->id,
-                'driver_id' => $driverId,
-                'truck_id' => $truckId,
+                'original_route_id' => $route->id,
+                'original_driver_id' => $driver->id,
+                'original_truck_id' => $truck->id,
                 'status' => 'in_progress',
-                'start_date' => now()
+                'start_date' => $startDate ?? now(),
+                'end_date' => $endDate
             ]);
 
-            // cria paradas
-            $firstStopId = null;
+            // Cria o snapshot da rota
+            $deliveryRoute = DeliveryRoute::create([
+                'delivery_id' => $delivery->id,
+                'name' => $route->name,
+                'description' => $route->description,
+                'status' => $route->status
+            ]);
+
+            // Cria os snapshots das paradas
+            $deliveryRouteStops = [];
             foreach ($route->stops()->orderBy('order')->get() as $stop) {
+                $deliveryRouteStops[] = DeliveryRouteStop::create([
+                    'delivery_route_id' => $deliveryRoute->id,
+                    'name' => $stop->name,
+                    'street' => $stop->street,
+                    'number' => $stop->number,
+                    'complement' => $stop->complement,
+                    'neighborhood' => $stop->neighborhood,
+                    'city' => $stop->city,
+                    'state' => $stop->state,
+                    'cep' => $stop->cep,
+                    'latitude' => $stop->latitude,
+                    'longitude' => $stop->longitude,
+                    'order' => $stop->order
+                ]);
+            }
+
+            // Cria as paradas da entrega
+            foreach ($deliveryRouteStops as $index => $routeStop) {
                 $deliveryStop = DeliveryStop::create([
                     'delivery_id' => $delivery->id,
-                    'route_stop_id' => $stop->id,
-                    'order' => $stop->order,
+                    'delivery_route_stop_id' => $routeStop->id,
+                    'order' => $routeStop->order,
                 ]);
-                if (!$firstStopId) {
-                    $firstStopId = $deliveryStop->id;
+
+                if ($index === 0) {
+                    $delivery->update(['current_delivery_stop_id' => $deliveryStop->id]);
                 }
             }
-            $delivery->update(['current_delivery_stop_id' => $firstStopId]);
 
-            // vincula carrocerias
-            $delivery->carrocerias()->sync($carroceriaIds);
-
-            DeliveryHistory::create([
+            // Cria o snapshot do motorista
+            DeliveryDriver::create([
                 'delivery_id' => $delivery->id,
-                'driver_id' => $driverId,
-                'truck_id' => $truckId,
-                'carroceria_ids' => $carroceriaIds,
+                'name' => $driver->name,
+                'cpf' => $driver->cpf,
+                'phone' => $driver->phone,
+                'email' => $driver->email,
+                'status' => $driver->status,
+                'cep' => $driver->cep,
+                'state' => $driver->state,
+                'city' => $driver->city,
+                'street' => $driver->street,
+                'number' => $driver->number,
+                'district' => $driver->district
             ]);
 
-            // Log do sucesso
-            \Log::info('Nova entrega criada', ['delivery' => $delivery]);
+
+            // Cria o snapshot do caminhão
+            DeliveryTruck::create([
+                'delivery_id' => $delivery->id,
+                'marca' => $truck->marca,
+                'modelo' => $truck->modelo,
+                'ano' => $truck->ano,
+                'cor' => $truck->cor,
+                'tipo_combustivel' => $truck->tipo_combustivel,
+                'carga_suportada' => $truck->carga_suportada,
+                'chassi' => $truck->chassi,
+                'placa' => $truck->placa,
+                'quilometragem' => $truck->quilometragem,
+                'ultima_revisao' => $truck->ultima_revisao,
+                'status' => $truck->status
+            ]);
+
+            // Cria os snapshots das carrocerias
+            foreach ($carrocerias as $carroceria) {
+                DeliveryCarroceria::create([
+                    'delivery_id' => $delivery->id,
+                    'descricao' => $carroceria->descricao,
+                    'chassi' => $carroceria->chassi,
+                    'placa' => $carroceria->placa,
+                    'peso_suportado' => $carroceria->peso_suportado
+                ]);
+            }
+
+            // Registra no histórico
+            DeliveryHistory::create([
+                'delivery_id' => $delivery->id,
+                'driver_id' => $driver->id,
+                'truck_id' => $truck->id,
+                'carroceria_ids' => $carroceriaIds,
+            ]);
 
             DB::commit();
             return $delivery;
@@ -104,20 +225,127 @@ class DeliveryService
         }
     }
 
-    public function changeResources(Delivery $delivery, $driverId, $truckId, array $carroceriaIds)
+    public function changeResources(Delivery $delivery, $routeId, $driverId, $truckId, array $carroceriaIds, $startDate = null, $endDate = null)
     {
-        return DB::transaction(function () use ($delivery, $driverId, $truckId, $carroceriaIds) {
-            $delivery->update([
-                'driver_id' => $driverId,
-                'truck_id' => $truckId,
-            ]);
-            $delivery->carrocerias()->sync($carroceriaIds);
+        return DB::transaction(function () use ($delivery, $routeId, $driverId, $truckId, $carroceriaIds, $startDate, $endDate) {
+            $route = Route::with('stops')->findOrFail($routeId);
+            $driver = Driver::findOrFail($driverId);
+            $truck = Truck::findOrFail($truckId);
+            $carrocerias = Carroceria::whereIn('id', $carroceriaIds)->get();
 
+            // Verifica se o motorista está disponível
+            $driverInUse = Delivery::where('original_driver_id', $driverId)
+                ->where('status', 'in_progress')
+                ->where('id', '!=', $delivery->id)
+                ->exists();
+            
+            if ($driverInUse) {
+                throw new Exception('Este motorista já está em uma entrega em andamento');
+            }
+
+            // Verifica se o caminhão está disponível
+            $truckInUse = Delivery::where('original_truck_id', $truckId)
+                ->where('status', 'in_progress')
+                ->where('id', '!=', $delivery->id)
+                ->exists();
+            
+            if ($truckInUse) {
+                throw new Exception('Este caminhão já está em uma entrega em andamento');
+            }
+
+            // Verifica se alguma das carrocerias está em uso
+            $carroceriasInUse = Delivery::whereHas('deliveryCarrocerias', function($query) use ($carroceriaIds) {
+                $query->whereIn('carroceria_id', $carroceriaIds);
+            })
+            ->where('status', 'in_progress')
+            ->where('id', '!=', $delivery->id)
+            ->exists();
+            
+            if ($carroceriasInUse) {
+                throw new Exception('Uma ou mais carrocerias selecionadas já estão em uma entrega em andamento');
+            }
+
+            // Atualiza os dados da entrega
+            $delivery->update([
+                'original_route_id' => $route->id,
+                'original_driver_id' => $driver->id,
+                'original_truck_id' => $truck->id,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]);
+
+            // Atualiza o snapshot da rota
+            $delivery->deliveryRoute->update([
+                'name' => $route->name,
+                'description' => $route->description,
+                'status' => $route->status
+            ]);
+
+            // Atualiza os snapshots das paradas
+            $delivery->deliveryRoute->stops()->delete();
+            foreach ($route->stops()->orderBy('order')->get() as $stop) {
+                DeliveryRouteStop::create([
+                    'delivery_route_id' => $delivery->deliveryRoute->id,
+                    'name' => $stop->name,
+                    'street' => $stop->street,
+                    'number' => $stop->number,
+                    'complement' => $stop->complement,
+                    'neighborhood' => $stop->neighborhood,
+                    'city' => $stop->city,
+                    'state' => $stop->state,
+                    'cep' => $stop->cep,
+                    'latitude' => $stop->latitude,
+                    'longitude' => $stop->longitude,
+                    'order' => $stop->order
+                ]);
+            }
+
+            // Atualiza o snapshot do motorista
+            $delivery->deliveryDriver->update([
+                'name' => $driver->name,
+                'cpf' => $driver->cpf,
+                'phone' => $driver->phone,
+                'email' => $driver->email,
+                'status' => $driver->status,
+                'cep' => $driver->cep,
+                'state' => $driver->state,
+                'city' => $driver->city,
+                'street' => $driver->street,
+                'number' => $driver->number,
+                'district' => $driver->district
+            ]);
+
+            // Atualiza o snapshot do caminhão
+            $delivery->deliveryTruck->update([
+                'marca' => $truck->marca,
+                'modelo' => $truck->modelo,
+                'placa' => $truck->placa,
+                'chassi' => $truck->chassi,
+                'ano' => $truck->ano,
+                'ano_modelo' => $truck->ano_modelo,
+                'cor' => $truck->cor,
+                'status' => $truck->status,
+                'ultima_revisao' => $truck->ultima_revisao
+            ]);
+
+            // Atualiza os snapshots das carrocerias
+            $delivery->deliveryCarrocerias()->delete();
+            foreach ($carrocerias as $carroceria) {
+                DeliveryCarroceria::create([
+                    'delivery_id' => $delivery->id,
+                    'descricao' => $carroceria->descricao,
+                    'chassi' => $carroceria->chassi,
+                    'placa' => $carroceria->placa,
+                    'peso_suportado' => $carroceria->peso_suportado
+                ]);
+            }
+
+            // Registra no histórico
             DeliveryHistory::create([
                 'delivery_id' => $delivery->id,
                 'delivery_stop_id' => $delivery->current_delivery_stop_id,
-                'driver_id' => $driverId,
-                'truck_id' => $truckId,
+                'driver_id' => $driver->id,
+                'truck_id' => $truck->id,
                 'carroceria_ids' => $carroceriaIds,
             ]);
 
@@ -149,22 +377,6 @@ class DeliveryService
         });
     }
 
-    public function cancelDelivery(Delivery $delivery)
-    {
-        return DB::transaction(function () use ($delivery) {
-            $delivery->update([
-                'status' => 'cancelled',
-                'end_date' => now(),
-            ]);
-            return $delivery;
-        });
-    }
-
-    public function getHistory(Delivery $delivery)
-    {
-        return $delivery->histories()->with('deliveryStop.routeStop')->orderBy('created_at')->get();
-    }
-
     public function completeDelivery(Delivery $delivery)
     {
         try {
@@ -186,6 +398,22 @@ class DeliveryService
             DB::rollBack();
             throw $e;
         }
+    }
+
+    public function cancelDelivery(Delivery $delivery)
+    {
+        return DB::transaction(function () use ($delivery) {
+            $delivery->update([
+                'status' => 'cancelled',
+                'end_date' => now(),
+            ]);
+            return $delivery;
+        });
+    }
+
+    public function getHistory(Delivery $delivery)
+    {
+        return $delivery->histories()->with('deliveryStop.deliveryRouteStop')->orderBy('created_at')->get();
     }
 
     public function reuseRoute(Delivery $delivery)

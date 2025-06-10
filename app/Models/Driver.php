@@ -60,7 +60,7 @@ class Driver extends Authenticatable implements JWTSubject
 
     public function deliveries()
     {
-        return $this->hasMany(Delivery::class);
+        return $this->hasMany(Delivery::class, 'original_driver_id');
     }
 
     public function setPasswordAttribute($value)

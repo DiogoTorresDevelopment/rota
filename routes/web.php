@@ -175,13 +175,16 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('deliveries/{delivery}/complete', [DeliveryController::class, 'complete'])
         ->name('deliveries.complete');
     Route::post('deliveries/{delivery}/change-resources', [DeliveryController::class, 'changeResources'])->name('deliveries.change-resources');
-    Route::post('deliveries/{delivery}/complete-stop', [DeliveryController::class, 'completeStop'])->name('deliveries.complete-stop');
+    Route::post('/deliveries/{delivery}/complete-stop', [DeliveryController::class, 'completeStop'])->name('deliveries.complete-stop');
     Route::post('deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel'])->name('deliveries.cancel');
     Route::get('deliveries/{delivery}/history', [DeliveryController::class, 'history'])->name('deliveries.history');
     Route::get('deliveries/{delivery}/details', [DeliveryController::class, 'details'])
         ->name('deliveries.details');
     Route::post('deliveries/{delivery}/reuse', [DeliveryController::class, 'reuse'])
         ->name('deliveries.reuse');
+    Route::get('/deliveries/{delivery}/edit', [DeliveryController::class, 'edit'])->name('deliveries.edit');
+    Route::get('/deliveries/{delivery}/stops/{stop}/edit', [DeliveryController::class, 'editStop'])->name('deliveries.edit-stop');
+    Route::put('/deliveries/{delivery}/stops/{stop}', [DeliveryController::class, 'updateStop'])->name('deliveries.update-stop');
 
     // A rota catch-all 404 deve ser a última
     Route::any('/{page?}',function(){

@@ -3,19 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DeliveryStop extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'delivery_id',
-        'route_stop_id',
+        'delivery_route_stop_id',
         'order',
         'status',
-        'completed_at',
+        'notes',
+        'completed_at'
     ];
 
     protected $casts = [
-        'completed_at' => 'datetime',
+        'completed_at' => 'datetime'
     ];
 
     public function delivery()
@@ -23,8 +27,13 @@ class DeliveryStop extends Model
         return $this->belongsTo(Delivery::class);
     }
 
-    public function routeStop()
+    public function deliveryRouteStop()
     {
-        return $this->belongsTo(RouteStop::class);
+        return $this->belongsTo(DeliveryRouteStop::class);
+    }
+
+    public function photos()
+    {
+        return $this->hasMany(DeliveryStopPhoto::class);
     }
 }
