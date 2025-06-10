@@ -25,6 +25,9 @@ class DeliveryResource extends JsonResource
             'carroceria' => $this->carroceria ? [
                 'id' => $this->carroceria->id,
                 'descricao' => $this->carroceria->descricao,
+                'chassi' => $this->carroceria->chassi,
+                'placa' => $this->carroceria->placa,
+                'peso_suportado' => $this->carroceria->peso_suportado,
             ] : null,
             'route' => [
                 'id' => $this->route->id,

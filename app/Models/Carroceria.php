@@ -9,6 +9,13 @@ class Carroceria extends Model
 {
     use SoftDeletes;
 
+    protected $fillable = [
+        'descricao',
+        'chassi',
+        'placa',
+        'peso_suportado',
+        'status'
+    ];
     protected $fillable = ['descricao'];
 
     public function deliveries()

@@ -30,6 +30,10 @@ class CarroceriaController extends Controller
     {
         $validated = $request->validate([
             'descricao' => 'required|string|max:255',
+            'chassi' => 'required|string|max:255|unique:carrocerias,chassi',
+            'placa' => 'required|string|max:8|unique:carrocerias,placa',
+            'peso_suportado' => 'required|numeric',
+            'status' => 'required|boolean'
         ]);
 
         $carroceria = $this->carroceriaService->store($validated);
@@ -46,6 +50,10 @@ class CarroceriaController extends Controller
     {
         $validated = $request->validate([
             'descricao' => 'required|string|max:255',
+            'chassi' => 'required|string|max:255|unique:carrocerias,chassi,' . $carroceria->id,
+            'placa' => 'required|string|max:8|unique:carrocerias,placa,' . $carroceria->id,
+            'peso_suportado' => 'required|numeric',
+            'status' => 'required|boolean'
         ]);
 
         $this->carroceriaService->update($carroceria, $validated);
