@@ -34,7 +34,6 @@ class DeliveryService
     }
 
     public function startDelivery($routeId, $driverId, $truckId, array $carroceriaIds)
-    public function startDelivery($routeId, $driverId, $truckId, $carroceriaId = null)
     {
         try {
             DB::beginTransaction();

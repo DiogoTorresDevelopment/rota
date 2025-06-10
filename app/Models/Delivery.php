@@ -68,6 +68,7 @@ class Delivery extends Model
     public function histories()
     {
         return $this->hasMany(DeliveryHistory::class);
+    }
     public function carroceria()
     {
         return $this->belongsTo(Carroceria::class);

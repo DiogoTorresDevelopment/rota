@@ -4,6 +4,7 @@
   <link href="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.css') }}" rel="stylesheet" />
   <link href="{{ asset('assets/plugins/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -169,6 +170,29 @@
               @endforeach
             </select>
           </div>
+          <div class="mt-4">
+            <select id="driver_id" name="driver_id" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" required>
+              <option value="">Selecione o motorista</option>
+              @foreach($drivers as $driver)
+                <option value="{{ $driver->id }}">{{ $driver->name }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="mt-4">
+            <select id="truck_id" name="truck_id" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500" required>
+              <option value="">Selecione o caminhão</option>
+              @foreach($trucks as $truck)
+                <option value="{{ $truck->id }}">{{ $truck->marca }} - {{ $truck->modelo }}</option>
+              @endforeach
+            </select>
+          </div>
+          <div class="mt-4">
+            <select id="carroceria_ids" name="carroceria_ids[]" class="w-full rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500 select2-carrocerias" multiple required>
+              @foreach($carrocerias as $carroceria)
+                <option value="{{ $carroceria->id }}">{{ $carroceria->descricao }}</option>
+              @endforeach
+            </select>
+          </div>
 
           <div class="mt-6 flex justify-end space-x-3">
             <button type="button" 
@@ -245,6 +269,7 @@
 @endpush
 
 @push('custom-scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 function openRouteModal() {
   document.getElementById('route-modal').classList.remove('hidden');
@@ -531,5 +556,14 @@ async function reuseRoute() {
         });
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Inicializa o Select2 para carrocerias
+  $('.select2-carrocerias').select2({
+    width: '100%',
+    placeholder: 'Selecione as carrocerias',
+    allowClear: true
+  });
+});
 </script>
 @endpush 

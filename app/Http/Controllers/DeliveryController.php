@@ -24,8 +24,10 @@ class DeliveryController extends Controller
     {
         $deliveries = $this->deliveryService->getDeliveries();
         $availableRoutes = $this->deliveryService->getAvailableRoutes();
-
-        return view('deliveries.index', compact('deliveries', 'availableRoutes'));
+        $drivers = \App\Models\Driver::where('status', true)->get();
+        $trucks = \App\Models\Truck::where('status', true)->get();
+        $carrocerias = \App\Models\Carroceria::whereNull('deleted_at')->get();
+        return view('deliveries.index', compact('deliveries', 'availableRoutes', 'drivers', 'trucks', 'carrocerias'));
     }
 
     public function create()
@@ -47,7 +49,6 @@ class DeliveryController extends Controller
                 $request->driver_id,
                 $request->truck_id,
                 $request->carroceria_ids
-                $request->carroceria_id
             );
             
             \Log::info('Rota iniciada com sucesso', ['delivery' => $delivery]);
