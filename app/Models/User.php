@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
     use Notifiable, SoftDeletes;
 
@@ -26,6 +27,20 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'status' => 'boolean',
     ];
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [
+            'email' => $this->email,
+            'name' => $this->name,
+            'status' => $this->status
+        ];
+    }
 
     public function permissionGroups()
     {
@@ -50,4 +65,4 @@ class User extends Authenticatable
             ->flatten()
             ->unique('id');
     }
-} 
+}

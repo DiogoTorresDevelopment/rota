@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Driver extends Authenticatable
+class Driver extends Authenticatable implements JWTSubject
 {
     use SoftDeletes, HasApiTokens;
 
@@ -37,6 +38,21 @@ class Driver extends Authenticatable
         'status' => 'boolean',
     ];
 
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [
+            'email' => $this->email,
+            'name' => $this->name,
+            'cpf' => $this->cpf,
+            'status' => $this->status
+        ];
+    }
+
     public function documents()
     {
         return $this->hasMany(DriverDocument::class);
@@ -51,4 +67,4 @@ class Driver extends Authenticatable
     {
         $this->attributes['password'] = bcrypt($value);
     }
-} 
+}

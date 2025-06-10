@@ -16,6 +16,7 @@ class Carroceria extends Model
         'peso_suportado',
         'status'
     ];
+    protected $fillable = ['descricao'];
 
     public function deliveries()
     {

@@ -24,9 +24,9 @@ use App\Http\Controllers\PermissionController;
 */
 
 // Auth Routes
-Route::get('login', function () { 
-    return view('pages.auth.login'); 
-})->name('login');
+Route::get('login', function () {
+    return view('pages.auth.login');
+})->name('login')->middleware('guest');
 
 Route::post('login', [AuthController::class, 'login'])->name('login.submit');
 
@@ -36,14 +36,16 @@ Route::post('forgot-password', [AuthController::class, 'sendResetLink'])->name('
 Route::get('reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 Route::post('reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
-Route::get('register', function () { return view('pages.auth.register'); })->name('register');
+Route::get('register', function () {
+    return view('pages.auth.register');
+})->name('register')->middleware('guest');
 
 Route::post('register', [AuthController::class, 'register'])->name('register.submit');
 
-Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
 
 // Protected Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['web', 'auth'])->group(function () {
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -51,7 +53,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('permissions', PermissionGroupController::class);
 
     // Rotas para Usuários
-    Route::middleware(['auth', 'permission:users.manage'])->group(function () {
+    Route::middleware(['permission:users.manage'])->group(function () {
         Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
         Route::post('/users', [UserController::class, 'store'])->name('users.store');
         Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
@@ -59,7 +61,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
 
-    Route::middleware(['auth', 'permission:users.view'])->group(function () {
+    Route::middleware(['permission:users.view'])->group(function () {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     });
@@ -184,12 +186,12 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // Rotas de Permissões
-Route::middleware(['auth', 'permission:permissions.view'])->group(function () {
+Route::middleware(['web', 'auth', 'permission:permissions.view'])->group(function () {
     Route::get('/permissions', [PermissionGroupController::class, 'index'])->name('permissions.index');
     Route::get('/permissions/{permission}', [PermissionGroupController::class, 'show'])->name('permissions.show');
 });
 
-Route::middleware(['auth', 'permission:permissions.manage'])->group(function () {
+Route::middleware(['web', 'auth', 'permission:permissions.manage'])->group(function () {
     Route::get('/permissions/create', [PermissionGroupController::class, 'create'])->name('permissions.create');
     Route::post('/permissions', [PermissionGroupController::class, 'store'])->name('permissions.store');
     Route::get('/permissions/{permission}/edit', [PermissionGroupController::class, 'edit'])->name('permissions.edit');
