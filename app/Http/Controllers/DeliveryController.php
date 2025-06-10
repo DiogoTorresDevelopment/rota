@@ -47,6 +47,7 @@ class DeliveryController extends Controller
                 $request->driver_id,
                 $request->truck_id,
                 $request->carroceria_ids
+                $request->carroceria_id
             );
             
             \Log::info('Rota iniciada com sucesso', ['delivery' => $delivery]);
@@ -102,6 +103,7 @@ class DeliveryController extends Controller
     {
         try {
             $delivery->load(['driver','truck','carrocerias','currentStop.routeStop','route.stops']);
+            $delivery->load(['driver','truck','carroceria','route.stops']);
             
             return response()->json([
                 'success' => true,

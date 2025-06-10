@@ -18,6 +18,7 @@ class Delivery extends Model
         'truck_id',
         'trailer_id',
         'current_delivery_stop_id',
+        'carroceria_id',
         'status',
         'start_date',
         'end_date',
@@ -67,5 +68,8 @@ class Delivery extends Model
     public function histories()
     {
         return $this->hasMany(DeliveryHistory::class);
+    public function carroceria()
+    {
+        return $this->belongsTo(Carroceria::class);
     }
 }

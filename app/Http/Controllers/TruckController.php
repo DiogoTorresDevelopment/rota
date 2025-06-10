@@ -95,4 +95,9 @@ class TruckController extends Controller
             ], 500);
         }
     }
+
+    public function show(Truck $truck)
+    {
+        return view('trucks.show', compact('truck'));
+    }
 } 

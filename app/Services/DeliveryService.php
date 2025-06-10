@@ -34,6 +34,7 @@ class DeliveryService
     }
 
     public function startDelivery($routeId, $driverId, $truckId, array $carroceriaIds)
+    public function startDelivery($routeId, $driverId, $truckId, $carroceriaId = null)
     {
         try {
             DB::beginTransaction();
@@ -60,6 +61,7 @@ class DeliveryService
                 'route_id' => $route->id,
                 'driver_id' => $driverId,
                 'truck_id' => $truckId,
+                'carroceria_id' => $carroceriaId,
                 'status' => 'in_progress',
                 'start_date' => now()
             ]);

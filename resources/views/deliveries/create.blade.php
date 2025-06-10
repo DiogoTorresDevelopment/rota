@@ -40,6 +40,9 @@
                         <div class="form-group mb-4">
                             <label for="carroceria_ids">Carrocerias</label>
                             <select multiple class="form-control" id="carroceria_ids" name="carroceria_ids[]" required>
+                            <label for="carroceria_id">Carroceria</label>
+                            <select class="form-control" id="carroceria_id" name="carroceria_id">
+                                <option value="">Opcional</option>
                                 @foreach($carrocerias as $carroceria)
                                     <option value="{{ $carroceria->id }}">{{ $carroceria->descricao }}</option>
                                 @endforeach
