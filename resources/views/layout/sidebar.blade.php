@@ -13,7 +13,7 @@
       <div class="flex items-center justify-center mb-5 w-full">
          <img src="{{ asset('images/logo.png') }}" alt="Logo">
       </div>
-      
+
       <ul class="space-y-2 font-medium">
          <!-- Dashboard -->
          <li>
@@ -92,7 +92,7 @@
 
          <!-- Logout -->
          <li class="mt-auto">
-            <form method="POST" action="{{ route('logout') }}">
+            <form id="logout-form" method="POST" action="{{ route('logout') }}" class="w-full">
                @csrf
                <button type="submit" class="flex w-full items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100 group">
                   <svg class="w-5 h-5 text-gray-500 transition duration-75 group-hover:text-gray-900" fill="none" viewBox="0 0 18 16">
@@ -109,16 +109,17 @@
 @push('custom-scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Dropdown buttons
     const dropdownButtons = document.querySelectorAll('[data-collapse-toggle]');
-    
+
     dropdownButtons.forEach(button => {
         button.addEventListener('click', function() {
             const targetId = this.getAttribute('data-collapse-toggle');
             const targetElement = document.getElementById(targetId);
-            
+
             if (targetElement) {
                 targetElement.classList.toggle('hidden');
-                
+
                 // Rotate arrow icon
                 const arrow = this.querySelector('svg:last-child');
                 if (arrow) {
@@ -127,6 +128,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Logout form
+    const logoutForm = document.getElementById('logout-form');
+    if (logoutForm) {
+        logoutForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Mostrar loading ou feedback visual aqui se desejar
+
+            // Enviar o formulário
+            this.submit();
+        });
+    }
 });
 </script>
 @endpush
