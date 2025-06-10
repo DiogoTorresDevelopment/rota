@@ -4,6 +4,7 @@
   <link href="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.css') }}" rel="stylesheet" />
   <link href="{{ asset('assets/plugins/sweetalert2/sweetalert2.min.css') }}" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -145,6 +146,7 @@
 </div>
 
 
+
 <!-- Modal de Detalhes da Entrega -->
 <div id="delivery-details-modal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden" style="z-index: 1000;">
     <div class="flex items-center justify-center min-h-screen p-4">
@@ -203,6 +205,7 @@
 @endpush
 
 @push('custom-scripts')
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 
 
@@ -443,5 +446,14 @@ async function reuseRoute() {
         });
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Inicializa o Select2 para carrocerias
+  $('.select2-carrocerias').select2({
+    width: '100%',
+    placeholder: 'Selecione as carrocerias',
+    allowClear: true
+  });
+});
 </script>
 @endpush 

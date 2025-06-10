@@ -37,7 +37,102 @@
           @endforeach
         </tbody>
       </table>
+
     </div>
   </div>
 </div>
 @endsection
+
+
+@push('custom-scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Dropdown actions
+    const dropdowns = document.querySelectorAll('[data-dropdown-toggle]');
+    function closeAllDropdowns(exceptId = null) {
+        dropdowns.forEach(dropdown => {
+            const dropdownId = dropdown.getAttribute('data-dropdown-toggle');
+            if (dropdownId !== exceptId) {
+                const dropdownMenu = document.getElementById(dropdownId);
+                if (dropdownMenu) {
+                    dropdownMenu.classList.add('hidden');
+                }
+            }
+        });
+    }
+    dropdowns.forEach(dropdown => {
+        const dropdownId = dropdown.getAttribute('data-dropdown-toggle');
+        const dropdownMenu = document.getElementById(dropdownId);
+        if (dropdownMenu) {
+            dropdown.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeAllDropdowns(dropdownId);
+                dropdownMenu.classList.toggle('hidden');
+            });
+        }
+    });
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('[data-dropdown-toggle]')) {
+            closeAllDropdowns();
+        }
+    });
+    // Confirmação de exclusão com SweetAlert2
+    const deleteButtons = document.querySelectorAll('.delete-carroceria');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            Swal.fire({
+                title: 'Tem certeza?',
+                text: "Esta ação não poderá ser revertida!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sim, excluir!',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(form.action, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Sucesso!',
+                                text: 'Carroceria excluída com sucesso!',
+                                icon: 'success',
+                                confirmButtonText: 'Ok'
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.message || 'Erro ao excluir a carroceria');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            title: 'Erro!',
+                            text: error.message,
+                            icon: 'error',
+                            confirmButtonText: 'Ok'
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
+</script>
+@endpush

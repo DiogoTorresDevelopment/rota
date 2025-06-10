@@ -372,4 +372,10 @@ class RouteController extends Controller
             ]
         ]);
     }
+
+    public function show(Route $route)
+    {
+        $route->load(['addresses', 'stops', 'deliveries']);
+        return view('routes.show', compact('route'));
+    }
 } 

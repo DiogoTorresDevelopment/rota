@@ -20,8 +20,6 @@ class RouteRequest extends FormRequest
             'step1' => [
                 'name' => 'required|string|max:255',
                 'start_date' => 'required|date',
-                'driver_id' => 'required|exists:drivers,id',
-                'truck_id' => 'required|exists:trucks,id',
                 'current_mileage' => 'required|numeric|min:0',
             ],
             
@@ -70,8 +68,6 @@ class RouteRequest extends FormRequest
         return [
             'name.required' => 'O nome da rota é obrigatório',
             'start_date.required' => 'A data de início é obrigatória',
-            'driver_id.required' => 'O motorista é obrigatório',
-            'truck_id.required' => 'O caminhão é obrigatório',
             'current_mileage.required' => 'A quilometragem atual é obrigatória',
             // ... adicione mais mensagens conforme necessário
         ];

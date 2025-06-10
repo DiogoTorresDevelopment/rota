@@ -27,8 +27,8 @@ Route::post('/password/forgot', [AuthController::class, 'apiForgotPassword'])->n
 Route::post('/password/reset', [AuthController::class, 'apiResetPassword'])->name('api.password.reset');
 Route::get('/check-auth', [AuthController::class, 'checkAuth'])->name('api.check.auth');
 
-// Protected routes - Com middleware de autenticação
-Route::middleware('auth:sanctum')->group(function () {
+// Rotas protegidas para motoristas
+Route::middleware('driver.api')->group(function () {
     // Informações do motorista
     Route::get('/driver/profile', [DriverController::class, 'apiProfile']);
     Route::put('/driver/profile', [DriverController::class, 'apiUpdateProfile']);
@@ -36,25 +36,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Rotas do motorista
     Route::get('/driver/routes', [RouteController::class, 'apiDriverRoutes']);
     Route::get('/driver/routes/{route}', [RouteController::class, 'apiDriverRouteDetails']);
-    
+
     // Entregas
     Route::get('/driver/deliveries', [DeliveryController::class, 'apiDriverDeliveries']);
     Route::get('/driver/deliveries/{delivery}', [DeliveryController::class, 'apiDriverDeliveryDetails']);
     Route::post('/driver/deliveries/{delivery}/complete', [DeliveryController::class, 'apiCompleteDelivery']);
-    
-    // Logout
-    Route::post('/logout', [AuthController::class, 'apiLogout']);
-});
 
-// Rotas protegidas para motoristas
-Route::middleware('driver.api')->group(function () {
-    Route::get('/driver/profile', [DriverController::class, 'apiProfile']);
-    Route::put('/driver/profile', [DriverController::class, 'apiUpdateProfile']);
-    Route::get('/driver/routes', [RouteController::class, 'apiDriverRoutes']);
-    Route::get('/driver/routes/{route}', [RouteController::class, 'apiDriverRouteDetails']);
-    Route::get('/driver/deliveries', [DeliveryController::class, 'apiDriverDeliveries']);
-    Route::get('/driver/deliveries/{delivery}', [DeliveryController::class, 'apiDriverDeliveryDetails']);
-    Route::post('/driver/deliveries/{delivery}/complete', [DeliveryController::class, 'apiCompleteDelivery']);
+    // Logout
     Route::post('/logout', [AuthController::class, 'apiLogout']);
 });
 

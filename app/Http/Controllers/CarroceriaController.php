@@ -28,13 +28,21 @@ class CarroceriaController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
+
+        $input = $request->all();
+        // Normaliza o campo peso_suportado para float
+        if (isset($input['peso_suportado'])) {
+            $input['peso_suportado'] = str_replace(['.', ','], ['', '.'], $input['peso_suportado']);
+            $input['peso_suportado'] = floatval($input['peso_suportado']);
+        }
+        $validated = \Validator::make($input, [
             'descricao' => 'required|string|max:255',
             'chassi' => 'required|string|max:255|unique:carrocerias,chassi',
             'placa' => 'required|string|max:8|unique:carrocerias,placa',
             'peso_suportado' => 'required|numeric',
             'status' => 'required|boolean'
         ]);
+        ])->validate();
 
         $carroceria = $this->carroceriaService->store($validated);
 
@@ -65,5 +73,10 @@ class CarroceriaController extends Controller
     {
         $carroceria->delete();
         return response()->json(['success' => true]);
+    }
+
+    public function show(Carroceria $carroceria)
+    {
+        return view('carrocerias.show', compact('carroceria'));
     }
 }

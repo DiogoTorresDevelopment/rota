@@ -34,3 +34,33 @@
   </div>
 </div>
 @endsection
+
+@push('custom-scripts')
+<script>
+// Máscara para chassi: só letras e números, até 17
+const chassiInput = document.getElementById('chassi');
+if (chassiInput) {
+  chassiInput.addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').substr(0, 17);
+  });
+}
+// Máscara para placa: Mercosul (AAA0A00) ou antigo (AAA0000)
+const placaInput = document.getElementById('placa');
+if (placaInput) {
+  placaInput.addEventListener('input', function(e) {
+    let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (v.length > 7) v = v.substr(0, 7);
+    this.value = v;
+  });
+}
+// Máscara para peso: milhar e decimal
+const pesoInput = document.getElementById('peso_suportado');
+if (pesoInput) {
+  pesoInput.addEventListener('input', function(e) {
+    let v = this.value.replace(/[^0-9,\.]/g, '').replace(/(\..*)\./g, '$1');
+    v = v.replace(/(,.*),/g, '$1');
+    this.value = v.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+  });
+}
+</script>
+@endpush

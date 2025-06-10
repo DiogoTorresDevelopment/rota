@@ -22,10 +22,10 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            
+
             // Carrega o usuário com suas permissões
             $user = Auth::user()->load('permissionGroups.permissions');
-            
+
             // Armazena as permissões na sessão
             $permissions = [];
             foreach ($user->permissionGroups as $group) {
@@ -177,12 +177,12 @@ class AuthController extends Controller
 
             // Revoga o token atual do usuário
             $request->user()->currentAccessToken()->delete();
-            
+
             \Log::info('Logout realizado com sucesso', [
                 'user_id' => $request->user()->id,
                 'email' => $request->user()->email
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Logout realizado com sucesso'
@@ -192,7 +192,7 @@ class AuthController extends Controller
                 'error' => $e->getMessage(),
                 'user_id' => $request->user()->id ?? null
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao realizar logout'
@@ -238,7 +238,7 @@ class AuthController extends Controller
 
             // Revoga todos os tokens antigos
             $driver->tokens()->delete();
-            
+
             // Gera um novo token usando Sanctum
             $token = $driver->createToken('driver-token', ['*'])->plainTextToken;
 
@@ -280,11 +280,6 @@ class AuthController extends Controller
         }
     }
 
-    /**
-     * Display the password reset request form.
-     *
-     * @return \Illuminate\View\View
-     */
     public function showForgotPasswordForm()
     {
         return view('pages.auth.forgot-password');

@@ -24,8 +24,10 @@ class DeliveryController extends Controller
     {
         $deliveries = $this->deliveryService->getDeliveries();
         $availableRoutes = $this->deliveryService->getAvailableRoutes();
-
-        return view('deliveries.index', compact('deliveries', 'availableRoutes'));
+        $drivers = \App\Models\Driver::where('status', true)->get();
+        $trucks = \App\Models\Truck::where('status', true)->get();
+        $carrocerias = \App\Models\Carroceria::whereNull('deleted_at')->get();
+        return view('deliveries.index', compact('deliveries', 'availableRoutes', 'drivers', 'trucks', 'carrocerias'));
     }
 
     public function create()
@@ -102,7 +104,7 @@ class DeliveryController extends Controller
     {
         try {
             $delivery->load(['driver','truck','carrocerias','currentStop.routeStop','route.stops']);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => new DeliveryResource($delivery)
