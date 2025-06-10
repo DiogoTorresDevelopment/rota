@@ -8,6 +8,7 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\TruckController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\CarroceriaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
 
@@ -165,11 +166,16 @@ Route::middleware(['auth'])->group(function () {
 
     // Mova estas rotas ANTES da rota catch-all 404
     Route::resource('trucks', TruckController::class);
+    Route::resource('carrocerias', CarroceriaController::class);
     Route::resource('routes', RouteController::class);
     Route::post('routes/{route}/optimize', [RouteController::class, 'optimize'])->name('routes.optimize');
     Route::resource('deliveries', DeliveryController::class);
     Route::post('deliveries/{delivery}/complete', [DeliveryController::class, 'complete'])
         ->name('deliveries.complete');
+    Route::post('deliveries/{delivery}/change-resources', [DeliveryController::class, 'changeResources'])->name('deliveries.change-resources');
+    Route::post('deliveries/{delivery}/complete-stop', [DeliveryController::class, 'completeStop'])->name('deliveries.complete-stop');
+    Route::post('deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel'])->name('deliveries.cancel');
+    Route::get('deliveries/{delivery}/history', [DeliveryController::class, 'history'])->name('deliveries.history');
     Route::get('deliveries/{delivery}/details', [DeliveryController::class, 'details'])
         ->name('deliveries.details');
     Route::post('deliveries/{delivery}/reuse', [DeliveryController::class, 'reuse'])

@@ -19,7 +19,7 @@ class RouteController extends Controller
     public function index()
     {
         try {
-            $routes = Route::with(['driver', 'truck', 'stops'])
+            $routes = Route::with(['stops'])
                 ->when(request('search'), function($query, $search) {
                     $query->where('name', 'like', "%{$search}%");
                 })
@@ -41,9 +41,7 @@ class RouteController extends Controller
 
     public function create()
     {
-        $drivers = \App\Models\Driver::where('status', true)->get();
-        $trucks = \App\Models\Truck::where('status', true)->get();
-        return view('routes.create', compact('drivers', 'trucks'));
+        return view('routes.create');
     }
 
     public function store(Request $request)
@@ -57,8 +55,6 @@ class RouteController extends Controller
                     $validated = $request->validate([
                         'name' => 'required',
                         'start_date' => 'required|date',
-                        'driver_id' => 'required|exists:drivers,id',
-                        'truck_id' => 'required|exists:trucks,id',
                         'current_mileage' => 'required|numeric',
                     ]);
 
@@ -200,11 +196,7 @@ class RouteController extends Controller
     public function edit(Route $route, Request $request)
     {
         $step = $request->query('step', 1);
-        $drivers = \App\Models\Driver::where('status', true)->get();
-        $trucks = \App\Models\Truck::where('status', true)->get();
-        
-        // Carrega os relacionamentos necessários
-        $route->load(['driver', 'truck', 'addresses', 'stops']);
+        $route->load(['addresses', 'stops']);
 
         // Para debug
         \Log::info('Route data:', [
@@ -212,7 +204,7 @@ class RouteController extends Controller
             'stops' => $route->stops->toArray()
         ]);
 
-        return view('routes.edit', compact('route', 'drivers', 'trucks', 'step'));
+        return view('routes.edit', compact('route', 'step'));
     }
 
     public function update(RouteRequest $request, Route $route)
@@ -279,8 +271,10 @@ class RouteController extends Controller
             ], 404);
         }
 
-        $routes = Route::where('driver_id', $driver->id)
-            ->with(['truck', 'stops'])
+        $routes = Route::whereHas('deliveries', function($query) use ($driver) {
+                $query->where('driver_id', $driver->id);
+            })
+            ->with(['stops'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($route) {
@@ -290,11 +284,6 @@ class RouteController extends Controller
                     'status' => $route->status,
                     'start_date' => $route->start_date,
                     'current_mileage' => $route->current_mileage,
-                    'truck' => $route->truck ? [
-                        'id' => $route->truck->id,
-                        'plate' => $route->truck->plate,
-                        'model' => $route->truck->model,
-                    ] : null,
                     'stops' => $route->stops->map(function ($stop) {
                         return [
                             'id' => $stop->id,
@@ -325,15 +314,15 @@ class RouteController extends Controller
     public function apiDriverRouteDetails(Request $request, Route $route)
     {
         $driver = $request->user()->driver;
-        
-        if (!$driver || $route->driver_id !== $driver->id) {
+
+        if (!$driver || !$route->deliveries()->where('driver_id', $driver->id)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Rota não encontrada'
             ], 404);
         }
 
-        $route->load(['truck', 'stops', 'deliveries']);
+        $route->load(['stops', 'deliveries']);
 
         return response()->json([
             'success' => true,
@@ -344,11 +333,6 @@ class RouteController extends Controller
                     'status' => $route->status,
                     'start_date' => $route->start_date,
                     'current_mileage' => $route->current_mileage,
-                    'truck' => $route->truck ? [
-                        'id' => $route->truck->id,
-                        'plate' => $route->truck->plate,
-                        'model' => $route->truck->model,
-                    ] : null,
                     'stops' => $route->stops->map(function ($stop) {
                         return [
                             'id' => $stop->id,

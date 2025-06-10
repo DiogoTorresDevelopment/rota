@@ -12,8 +12,6 @@ class Route extends Model
     protected $fillable = [
         'name',
         'start_date',
-        'driver_id',
-        'truck_id',
         'current_mileage',
         'status'
     ];
@@ -24,15 +22,6 @@ class Route extends Model
     ];
 
     // Relacionamentos
-    public function driver()
-    {
-        return $this->belongsTo(Driver::class);
-    }
-
-    public function truck()
-    {
-        return $this->belongsTo(Truck::class);
-    }
 
     public function addresses()
     {
