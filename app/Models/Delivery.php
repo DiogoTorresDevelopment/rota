@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Models\Carroceria;
 
 class Delivery extends Model
 {
@@ -14,6 +15,7 @@ class Delivery extends Model
         'driver_id',
         'truck_id',
         'trailer_id',
+        'carroceria_id',
         'status',
         'start_date',
         'end_date',
@@ -43,5 +45,10 @@ class Delivery extends Model
     public function trailer()
     {
         return $this->belongsTo(Trailer::class);
+    }
+
+    public function carroceria()
+    {
+        return $this->belongsTo(Carroceria::class);
     }
 }

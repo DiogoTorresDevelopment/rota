@@ -31,7 +31,10 @@ class DeliveryController extends Controller
     public function create()
     {
         $availableRoutes = $this->deliveryService->getAvailableRoutes();
-        return view('deliveries.create', compact('availableRoutes'));
+        $drivers = \App\Models\Driver::where('status', true)->get();
+        $trucks = \App\Models\Truck::where('status', true)->get();
+        $carrocerias = \App\Models\Carroceria::whereNull('deleted_at')->get();
+        return view('deliveries.create', compact('availableRoutes', 'drivers', 'trucks', 'carrocerias'));
     }
 
     public function store(StoreDeliveryRequest $request)
@@ -39,7 +42,12 @@ class DeliveryController extends Controller
         try {
             \Log::info('Iniciando rota', ['request' => $request->all()]);
             
-            $delivery = $this->deliveryService->startDelivery($request->route_id);
+            $delivery = $this->deliveryService->startDelivery(
+                $request->route_id,
+                $request->driver_id,
+                $request->truck_id,
+                $request->carroceria_id
+            );
             
             \Log::info('Rota iniciada com sucesso', ['delivery' => $delivery]);
 
@@ -93,7 +101,7 @@ class DeliveryController extends Controller
     public function details(Delivery $delivery)
     {
         try {
-            $delivery->load(['route.driver', 'route.stops']);
+            $delivery->load(['driver','truck','carroceria','route.stops']);
             
             return response()->json([
                 'success' => true,
@@ -184,7 +192,7 @@ class DeliveryController extends Controller
     {
         $driver = $request->user()->driver;
         
-        if (!$driver || $delivery->route->driver_id !== $driver->id) {
+        if (!$driver || $delivery->driver_id !== $driver->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Entrega não encontrada'
@@ -229,7 +237,7 @@ class DeliveryController extends Controller
     {
         $driver = $request->user()->driver;
         
-        if (!$driver || $delivery->route->driver_id !== $driver->id) {
+        if (!$driver || $delivery->driver_id !== $driver->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Entrega não encontrada'
