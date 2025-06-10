@@ -66,6 +66,9 @@
                <li>
                   <a href="{{ route('trucks.index') }}" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100">Caminhões</a>
                </li>
+               <li>
+                  <a href="{{ route('carrocerias.index') }}" class="flex items-center w-full p-2 text-gray-900 transition duration-75 rounded-lg pl-11 group hover:bg-gray-100">Carrocerias</a>
+               </li>
             </ul>
          </li>
 

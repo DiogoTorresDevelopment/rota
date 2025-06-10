@@ -8,6 +8,7 @@ use App\Http\Controllers\DriverController;
 use App\Http\Controllers\TruckController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\DeliveryController;
+use App\Http\Controllers\CarroceriaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PermissionController;
 
@@ -165,6 +166,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Mova estas rotas ANTES da rota catch-all 404
     Route::resource('trucks', TruckController::class);
+    Route::resource('carrocerias', CarroceriaController::class);
     Route::resource('routes', RouteController::class);
     Route::post('routes/{route}/optimize', [RouteController::class, 'optimize'])->name('routes.optimize');
     Route::resource('deliveries', DeliveryController::class);

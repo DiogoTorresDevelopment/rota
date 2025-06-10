@@ -87,8 +87,6 @@
             <tr>
               <th class="px-6 py-3 text-gray-600 font-medium">CÓD.</th>
               <th class="px-6 py-3 text-gray-600 font-medium">NOME</th>
-              <th class="px-6 py-3 text-gray-600 font-medium">MOTORISTA</th>
-              <th class="px-6 py-3 text-gray-600 font-medium">CAMINHÃO</th>
               <th class="px-6 py-3 text-gray-600 font-medium">DATA INÍCIO</th>
               <th class="px-6 py-3 text-gray-600 font-medium">STATUS</th>
               <th class="px-6 py-3 text-gray-600 font-medium text-right">AÇÕES</th>
@@ -99,12 +97,6 @@
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4 text-gray-600">{{ $route->id }}</td>
               <td class="px-6 py-4 text-gray-900">{{ $route->name }}</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ $route->driver->name ?? 'N/A' }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ $route->truck->marca }} {{ $route->truck->modelo }} - {{ $route->truck->placa }}
-              </td>
               <td class="px-6 py-4 text-gray-600">{{ $route->start_date->format('d/m/Y') }}</td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
