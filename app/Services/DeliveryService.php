@@ -413,7 +413,10 @@ class DeliveryService
 
     public function getHistory(Delivery $delivery)
     {
-        return $delivery->histories()->with('deliveryStop.deliveryRouteStop')->orderBy('created_at')->get();
+        return $delivery->histories()
+            ->with(['deliveryStop.deliveryRouteStop', 'driver', 'truck'])
+            ->orderBy('created_at')
+            ->get();
     }
 
     public function reuseRoute(Delivery $delivery)

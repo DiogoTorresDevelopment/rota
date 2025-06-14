@@ -178,6 +178,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::post('/deliveries/{delivery}/complete-stop', [DeliveryController::class, 'completeStop'])->name('deliveries.complete-stop');
     Route::post('deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel'])->name('deliveries.cancel');
     Route::get('deliveries/{delivery}/history', [DeliveryController::class, 'history'])->name('deliveries.history');
+    Route::get('deliveries/{delivery}/history-view', [DeliveryController::class, 'historyView'])->name('deliveries.history-view');
     Route::get('deliveries/{delivery}/details', [DeliveryController::class, 'details'])
         ->name('deliveries.details');
     Route::post('deliveries/{delivery}/reuse', [DeliveryController::class, 'reuse'])

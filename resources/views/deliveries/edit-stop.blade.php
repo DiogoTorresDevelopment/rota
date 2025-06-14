@@ -153,10 +153,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const photoUpload = new Dropzone("#photoUpload", {
         url: "{{ route('deliveries.update-stop', ['delivery' => $delivery->id, 'stop' => $stop->id]) }}",
+        method: 'post',
         paramName: "photos",
         maxFilesize: 2, // MB
         acceptedFiles: "image/*",
         addRemoveLinks: true,
+        params: { _method: 'PUT' },
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
         }
@@ -167,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const formData = new FormData(this);
+        formData.append('_method', 'PUT');
         
         // Adiciona as fotos do Dropzone
         const dropzoneFiles = photoUpload.getAcceptedFiles();
