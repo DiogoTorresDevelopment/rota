@@ -140,9 +140,13 @@
         </div>
       </div>
 
-      <!-- Botão Voltar -->
-      <div class="mt-6 flex justify-end">
-        <a href="{{ route('deliveries.index') }}" 
+      <!-- Botões -->
+      <div class="mt-6 flex justify-end space-x-2">
+        <a href="{{ route('deliveries.history-view', $delivery) }}"
+           class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Histórico
+        </a>
+        <a href="{{ route('deliveries.index') }}"
            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
           Voltar
         </a>

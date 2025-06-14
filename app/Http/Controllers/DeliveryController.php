@@ -502,4 +502,10 @@ class DeliveryController extends Controller
             ], 422);
         }
     }
+
+    public function historyView(Delivery $delivery)
+    {
+        $delivery->load(['deliveryRoute', 'deliveryDriver', 'deliveryTruck']);
+        return view('deliveries.history', compact('delivery'));
+    }
 }
