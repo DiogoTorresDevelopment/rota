@@ -52,11 +52,18 @@
                                         <select name="driver_id" class="form-control">
                                             <option value="">Selecione um motorista</option>
                                             @foreach($availableDrivers as $driver)
-                                                <option value="{{ $driver->id }}" {{ $delivery->original_driver_id == $driver->id ? 'selected' : '' }}>
+                                                <option value="{{ $driver->id }}" 
+                                                    {{ $delivery->original_driver_id == $driver->id ? 'selected' : '' }}
+                                                    class="{{ $delivery->original_driver_id == $driver->id ? 'text-success' : '' }}"
+                                                    title="{{ $delivery->original_driver_id == $driver->id ? 'Motorista atual' : 'Disponível' }}">
                                                     {{ $driver->name }} - CPF: {{ $driver->cpf }}
+                                                    {{ $delivery->original_driver_id == $driver->id ? ' (Atual)' : '' }}
                                                 </option>
                                             @endforeach
                                         </select>
+                                        <small class="form-text text-muted">
+                                            Motoristas em uso em outras entregas não aparecem na lista.
+                                        </small>
                                     </div>
                                 </div>
 
@@ -74,11 +81,18 @@
                                         <select name="truck_id" class="form-control">
                                             <option value="">Selecione um caminhão</option>
                                             @foreach($availableTrucks as $truck)
-                                                <option value="{{ $truck->id }}" {{ $delivery->original_truck_id == $truck->id ? 'selected' : '' }}>
+                                                <option value="{{ $truck->id }}" 
+                                                    {{ $delivery->original_truck_id == $truck->id ? 'selected' : '' }}
+                                                    class="{{ $truck->id == $delivery->original_truck_id ? 'text-success' : '' }}"
+                                                    title="{{ $truck->id == $delivery->original_truck_id ? 'Caminhão atual' : 'Disponível' }}">
                                                     {{ $truck->marca }} {{ $truck->modelo }} - Placa: {{ $truck->placa }}
+                                                    {{ $truck->id == $delivery->original_truck_id ? ' (Atual)' : '' }}
                                                 </option>
                                             @endforeach
                                         </select>
+                                        <small class="form-text text-muted">
+                                            Caminhões em uso em outras entregas não aparecem na lista.
+                                        </small>
                                     </div>
                                 </div>
 
@@ -94,6 +108,7 @@
                                                         <th>Placa</th>
                                                         <th>Chassi</th>
                                                         <th>Peso Suportado</th>
+                                                        <th>Ações</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -103,6 +118,16 @@
                                                         <td>{{ $carroceria->placa }}</td>
                                                         <td>{{ $carroceria->chassi }}</td>
                                                         <td>{{ $carroceria->peso_suportado }} kg</td>
+                                                        <td>
+                                                            <button type="button" 
+                                                                    class="p-2 text-red-600 hover:text-red-800 hover:bg-red-100 rounded-full transition-colors duration-200"
+                                                                    onclick="removeCarroceria({{ $delivery->id }}, {{ $carroceria->carroceria_id }})"
+                                                                    title="Remover carroceria">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                                </svg>
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                     @endforeach
                                                 </tbody>
@@ -111,11 +136,16 @@
                                         <label>Novas Carrocerias</label>
                                         <select name="carroceria_ids[]" class="form-control select2" multiple>
                                             @foreach($availableCarrocerias as $carroceria)
-                                                <option value="{{ $carroceria->id }}" {{ in_array($carroceria->id, $delivery->deliveryCarrocerias->pluck('id')->toArray()) ? 'selected' : '' }}>
-                                                    {{ $carroceria->descricao }} - Placa: {{ $carroceria->placa }}
-                                                </option>
+                                                @if(!in_array($carroceria->id, $delivery->deliveryCarrocerias->pluck('carroceria_id')->toArray()))
+                                                    <option value="{{ $carroceria->id }}">
+                                                        {{ $carroceria->descricao }} - Placa: {{ $carroceria->placa }}
+                                                    </option>
+                                                @endif
                                             @endforeach
                                         </select>
+                                        <small class="form-text text-muted">
+                                            Carrocerias em uso em outras entregas não aparecem na lista.
+                                        </small>
                                     </div>
                                 </div>
 
@@ -162,14 +192,14 @@
                                             {{ $delivery->deliveryRoute->description }}
                                         </div>
                                         <label>Nova Rota</label>
-                                        <select name="route_id" class="form-control">
-                                            <option value="">Selecione uma rota</option>
-                                            @foreach($availableRoutes as $route)
-                                                <option value="{{ $route->id }}" {{ $delivery->original_route_id == $route->id ? 'selected' : '' }}>
-                                                    {{ $route->name }}
-                                                </option>
-                                            @endforeach
+                                        <select name="route_id" class="form-control" disabled>
+                                            <option value="{{ $delivery->original_route_id }}" selected>
+                                                {{ $delivery->deliveryRoute->name }}
+                                            </option>
                                         </select>
+                                        <small class="form-text text-muted">
+                                            Não é possível alterar a rota de uma entrega em andamento.
+                                        </small>
                                     </div>
                                 </div>
 
@@ -240,6 +270,61 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializa Select2
     $('.select2').select2();
+
+    // Função para remover carroceria
+    window.removeCarroceria = function(deliveryId, carroceriaId) {
+        Swal.fire({
+            title: 'Tem certeza?',
+            text: "Esta ação não poderá ser revertida!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sim, remover!',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                fetch(`/deliveries/${deliveryId}/remove-carroceria`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        carroceria_id: carroceriaId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Sucesso!',
+                            text: data.message,
+                            icon: 'success'
+                        }).then(() => {
+                            // Recarrega a página para atualizar a lista
+                            window.location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Erro!',
+                            text: data.message,
+                            icon: 'error'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Erro!',
+                        text: 'Ocorreu um erro ao remover a carroceria.',
+                        icon: 'error'
+                    });
+                });
+            }
+        });
+    };
 
     // Função para navegar entre as etapas
     window.nextStep = function(step) {

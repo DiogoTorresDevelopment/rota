@@ -13,12 +13,24 @@ class Carroceria extends Model
         'descricao',
         'chassi',
         'placa',
-        'peso_suportado',
-        'status'
+        'peso_suportado'
     ];
 
     public function deliveries()
     {
-        return $this->hasMany(Delivery::class);
+        return $this->belongsToMany(Delivery::class, 'delivery_carrocerias', 'carroceria_id', 'delivery_id')
+            ->withTimestamps();
+    }
+
+    public function deliveryCarrocerias()
+    {
+        return $this->hasMany(DeliveryCarroceria::class);
+    }
+
+    public function isAvailable()
+    {
+        return !$this->deliveries()
+            ->where('status', 'in_progress')
+            ->exists();
     }
 }

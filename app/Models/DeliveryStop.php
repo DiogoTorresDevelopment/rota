@@ -14,7 +14,6 @@ class DeliveryStop extends Model
         'delivery_route_stop_id',
         'order',
         'status',
-        'notes',
         'completed_at'
     ];
 

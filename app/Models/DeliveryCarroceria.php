@@ -11,6 +11,7 @@ class DeliveryCarroceria extends Model
 
     protected $fillable = [
         'delivery_id',
+        'carroceria_id',
         'descricao',
         'chassi',
         'placa',
@@ -24,5 +25,10 @@ class DeliveryCarroceria extends Model
     public function delivery()
     {
         return $this->belongsTo(Delivery::class);
+    }
+
+    public function carroceria()
+    {
+        return $this->belongsTo(Carroceria::class);
     }
 } 

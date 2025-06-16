@@ -289,11 +289,21 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
 
-        $status = Password::sendResetLink($request->only('email'));
+        try {
+            $status = Password::sendResetLink($request->only('email'));
 
-        return $status == Password::RESET_LINK_SENT
-            ? back()->with(['status' => __($status)])
-            : back()->withErrors(['email' => __($status)]);
+            return $status == Password::RESET_LINK_SENT
+                ? back()->with(['status' => __($status)])
+                : back()->withErrors(['email' => __($status)]);
+        } catch (\Exception $e) {
+            \Log::error('Erro ao enviar email de recuperação de senha', [
+                'email' => $request->email,
+                'error' => $e->getMessage()
+            ]);
+
+            return redirect()->route('login')
+                ->with('error', 'Não foi possível enviar o email de recuperação de senha. Por favor, tente novamente mais tarde.');
+        }
     }
 
     public function showResetForm($token)

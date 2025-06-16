@@ -17,16 +17,16 @@ class Delivery extends Model
         'original_route_id',
         'original_driver_id',
         'original_truck_id',
-        'current_delivery_stop_id',
         'status',
         'start_date',
         'end_date',
+        'current_delivery_stop_id',
         'notes'
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
-        'end_date' => 'datetime'
+        'end_date' => 'datetime',
     ];
 
     // Relationships with original data
@@ -43,6 +43,12 @@ class Delivery extends Model
     public function truck()
     {
         return $this->belongsTo(Truck::class, 'original_truck_id');
+    }
+
+    public function carrocerias()
+    {
+        return $this->belongsToMany(Carroceria::class, 'delivery_carrocerias', 'delivery_id', 'carroceria_id')
+            ->withTimestamps();
     }
 
     // Relationships with snapshot data

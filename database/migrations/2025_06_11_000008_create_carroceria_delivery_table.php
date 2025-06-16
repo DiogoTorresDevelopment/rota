@@ -8,16 +8,29 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::create('carroceria_delivery', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('delivery_id')->constrained('deliveries');
-            $table->foreignId('carroceria_id')->constrained('carrocerias');
-            $table->timestamps();
+        Schema::table('delivery_carrocerias', function (Blueprint $table) {
+            $table->foreignId('delivery_id')->constrained()->onDelete('cascade');
+            $table->foreignId('carroceria_id')->constrained()->onDelete('cascade');
+            $table->string('descricao');
+            $table->string('chassi')->nullable();
+            $table->string('placa');
+            $table->decimal('peso_suportado', 10, 2);
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('carroceria_delivery');
+        Schema::table('delivery_carrocerias', function (Blueprint $table) {
+            $table->dropForeign(['delivery_id']);
+            $table->dropForeign(['carroceria_id']);
+            $table->dropColumn([
+                'delivery_id',
+                'carroceria_id',
+                'descricao',
+                'chassi',
+                'placa',
+                'peso_suportado'
+            ]);
+        });
     }
 };

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Driver;
 use App\Models\Truck;
+use App\Models\Carroceria;
 
 class DeliveryHistory extends Model
 {
@@ -14,11 +15,15 @@ class DeliveryHistory extends Model
         'driver_id',
         'truck_id',
         'carroceria_ids',
+        'is_initial',
     ];
 
     protected $casts = [
         'carroceria_ids' => 'array',
+        'is_initial' => 'boolean',
     ];
+
+    protected $appends = ['carrocerias'];
 
     public function delivery()
     {
@@ -38,5 +43,13 @@ class DeliveryHistory extends Model
     public function truck()
     {
         return $this->belongsTo(Truck::class);
+    }
+
+    public function getCarroceriasAttribute()
+    {
+        if (!$this->carroceria_ids) {
+            return collect();
+        }
+        return Carroceria::whereIn('id', $this->carroceria_ids)->get();
     }
 }

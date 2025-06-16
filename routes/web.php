@@ -176,6 +176,8 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('deliveries.complete');
     Route::post('deliveries/{delivery}/change-resources', [DeliveryController::class, 'changeResources'])->name('deliveries.change-resources');
     Route::post('/deliveries/{delivery}/complete-stop', [DeliveryController::class, 'completeStop'])->name('deliveries.complete-stop');
+    Route::post('deliveries/{delivery}/remove-carroceria', [DeliveryController::class, 'removeCarroceria'])
+        ->name('deliveries.remove-carroceria');
     Route::post('deliveries/{delivery}/cancel', [DeliveryController::class, 'cancel'])->name('deliveries.cancel');
     Route::get('deliveries/{delivery}/history', [DeliveryController::class, 'history'])->name('deliveries.history');
     Route::get('deliveries/{delivery}/history-view', [DeliveryController::class, 'historyView'])->name('deliveries.history-view');
@@ -186,6 +188,8 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/deliveries/{delivery}/edit', [DeliveryController::class, 'edit'])->name('deliveries.edit');
     Route::get('/deliveries/{delivery}/stops/{stop}/edit', [DeliveryController::class, 'editStop'])->name('deliveries.edit-stop');
     Route::put('/deliveries/{delivery}/stops/{stop}', [DeliveryController::class, 'updateStop'])->name('deliveries.update-stop');
+    Route::post('/deliveries/upload-photo', [DeliveryController::class, 'uploadPhoto'])->name('deliveries.upload-photo');
+    Route::delete('/deliveries/delete-photo/{photo}', [DeliveryController::class, 'deletePhoto'])->name('deliveries.delete-photo');
 
     // A rota catch-all 404 deve ser a última
     Route::any('/{page?}',function(){
