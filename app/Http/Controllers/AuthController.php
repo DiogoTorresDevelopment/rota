@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Password;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
@@ -168,19 +169,23 @@ class AuthController extends Controller
     public function apiLogout(Request $request)
     {
         try {
-            if (!$request->user()) {
+            $user = null;
+            if ($token = $request->bearerToken()) {
+                $user = JWTAuth::setToken($token)->authenticate();
+                JWTAuth::invalidate($token);
+            } elseif ($request->user()) {
+                $user = $request->user();
+                $request->user()->currentAccessToken()->delete();
+            } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Usuário não autenticado'
                 ], 401);
             }
 
-            // Revoga o token atual do usuário
-            $request->user()->currentAccessToken()->delete();
-
             \Log::info('Logout realizado com sucesso', [
-                'user_id' => $request->user()->id,
-                'email' => $request->user()->email
+                'user_id' => $user->id ?? null,
+                'email' => $user->email ?? null
             ]);
 
             return response()->json([
@@ -236,11 +241,8 @@ class AuthController extends Controller
                 ], 403);
             }
 
-            // Revoga todos os tokens antigos
-            $driver->tokens()->delete();
-
-            // Gera um novo token usando Sanctum
-            $token = $driver->createToken('driver-token', ['*'])->plainTextToken;
+            // Gera um novo token JWT para o motorista
+            $token = JWTAuth::fromUser($driver);
 
             \Log::info('Login do motorista realizado com sucesso', [
                 'email' => $request->email,

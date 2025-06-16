@@ -41,6 +41,9 @@ Route::middleware('driver.api')->group(function () {
     Route::get('/driver/deliveries', [DeliveryController::class, 'apiDriverDeliveries']);
     Route::get('/driver/deliveries/{delivery}', [DeliveryController::class, 'apiDriverDeliveryDetails']);
     Route::post('/driver/deliveries/{delivery}/complete', [DeliveryController::class, 'apiCompleteDelivery']);
+    Route::post('/driver/deliveries/{delivery}/complete-stop', [DeliveryController::class, 'apiCompleteStop']);
+    Route::post('/driver/upload-photo', [DeliveryController::class, 'apiUploadPhoto']);
+    Route::delete('/driver/photos/{photo}', [DeliveryController::class, 'apiDeletePhoto']);
 
     // Logout
     Route::post('/logout', [AuthController::class, 'apiLogout']);
