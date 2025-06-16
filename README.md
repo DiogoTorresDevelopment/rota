@@ -78,5 +78,23 @@ http://localhost:8000
 - Acompanhamento em tempo real
 - Relatórios e estatísticas
 
+## API do Motorista
+Todas as rotas do aplicativo do motorista utilizam autenticação JWT. Para obter
+um token envie uma requisição `POST /api/login/driver` com `email` e `password`.
+Use o token retornado no cabeçalho `Authorization: Bearer <token>` para acessar
+os endpoints abaixo:
+
+- `GET /api/driver/profile`
+- `PUT /api/driver/profile`
+- `GET /api/driver/routes`
+- `GET /api/driver/routes/{route}`
+- `GET /api/driver/deliveries`
+- `GET /api/driver/deliveries/{delivery}`
+- `POST /api/driver/deliveries/{delivery}/complete`
+- `POST /api/driver/deliveries/{delivery}/complete-stop`
+- `POST /api/driver/upload-photo` *(enviar arquivo `photo`)*
+- `DELETE /api/driver/photos/{photo}`
+- `POST /api/logout`
+
 ## Suporte
 Para suporte ou dúvidas, entre em contato com a equipe de desenvolvimento.

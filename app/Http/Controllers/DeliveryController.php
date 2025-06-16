@@ -372,6 +372,33 @@ class DeliveryController extends Controller
         }
     }
 
+    public function apiCompleteStop(Request $request, Delivery $delivery)
+    {
+        $driver = $request->user()->driver;
+
+        if (!$driver || $delivery->original_driver_id !== $driver->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Entrega não encontrada'
+            ], 404);
+        }
+
+        try {
+            $delivery = $this->deliveryService->completeCurrentStop($delivery);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Parada concluída com sucesso!',
+                'data' => new DeliveryResource($delivery)
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao concluir parada: ' . $e->getMessage()
+            ], 422);
+        }
+    }
+
     public function cancel(Delivery $delivery)
     {
         $delivery = $this->deliveryService->cancelDelivery($delivery);
@@ -639,6 +666,16 @@ class DeliveryController extends Controller
                 'message' => 'Erro ao fazer upload da foto: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function apiUploadPhoto(Request $request)
+    {
+        return $this->uploadPhoto($request);
+    }
+
+    public function apiDeletePhoto(DeliveryStopPhoto $photo)
+    {
+        return $this->deletePhoto($photo);
     }
 
     public function deletePhoto(DeliveryStopPhoto $photo)
