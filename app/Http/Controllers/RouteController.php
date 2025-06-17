@@ -262,8 +262,8 @@ class RouteController extends Controller
 
     public function apiDriverRoutes(Request $request)
     {
-        $driver = $request->user()->driver;
-        
+        $driver = $request->user();
+
         if (!$driver) {
             return response()->json([
                 'success' => false,
@@ -272,10 +272,15 @@ class RouteController extends Controller
         }
 
         $routes = Route::whereHas('deliveries', function($query) use ($driver) {
-                $query->where('driver_id', $driver->id);
+                $query->where('original_driver_id', $driver->id);
             })
-            ->with(['stops'])
-            ->orderBy('created_at', 'desc')
+            ->with([
+                'stops',
+                'deliveries' => function($query) {
+                    $query->where('status', 'in_progress');
+                }
+            ])
+            ->orderBy('created_at', 'desc') 
             ->get()
             ->map(function ($route) {
                 return [
@@ -299,6 +304,28 @@ class RouteController extends Controller
                                 'cep' => $stop->cep,
                             ]
                         ];
+                    }),
+                    'deliveries' => $route->deliveries->map(function ($delivery) {
+                        return [
+                            'id' => $delivery->id,
+                            'status' => $delivery->status,
+                            'created_at' => $delivery->created_at,
+                            'completed_at' => $delivery->end_date,
+                            'current_stop' => $delivery->currentStop ? [
+                                'id' => $delivery->currentStop->id,
+                                'name' => $delivery->currentStop->deliveryRouteStop->name,
+                                'order' => $delivery->currentStop->order,
+                                'latitude' => $delivery->currentStop->deliveryRouteStop->latitude,
+                                'longitude' => $delivery->currentStop->deliveryRouteStop->longitude,
+                                'address' => [
+                                    'street' => $delivery->currentStop->deliveryRouteStop->street,
+                                    'number' => $delivery->currentStop->deliveryRouteStop->number,
+                                    'city' => $delivery->currentStop->deliveryRouteStop->city,
+                                    'state' => $delivery->currentStop->deliveryRouteStop->state,
+                                    'cep' => $delivery->currentStop->deliveryRouteStop->cep,
+                                ]
+                            ] : null
+                        ];
                     })
                 ];
             });
@@ -313,16 +340,27 @@ class RouteController extends Controller
 
     public function apiDriverRouteDetails(Request $request, Route $route)
     {
-        $driver = $request->user()->driver;
+        $driver = $request->user();
 
-        if (!$driver || !$route->deliveries()->where('driver_id', $driver->id)->exists()) {
+        if (!$driver || !$route->deliveries()->where('original_driver_id', $driver->id)->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Rota não encontrada'
             ], 404);
         }
 
-        $route->load(['stops', 'deliveries']);
+        $route->load([
+            'stops',
+            'deliveries' => function($query) {
+                $query->where('status', 'in_progress')
+                    ->with([
+                        'currentStop.deliveryRouteStop',
+                        'deliveryRoute',
+                        'deliveryDriver',
+                        'deliveryTruck.carrocerias'
+                    ]);
+            }
+        ]);
 
         return response()->json([
             'success' => true,
@@ -354,16 +392,43 @@ class RouteController extends Controller
                             'id' => $delivery->id,
                             'status' => $delivery->status,
                             'created_at' => $delivery->created_at,
-                            'completed_at' => $delivery->completed_at,
-                            'stop' => $delivery->stop ? [
-                                'id' => $delivery->stop->id,
-                                'name' => $delivery->stop->name,
+                            'completed_at' => $delivery->end_date,
+                            'notes' => $delivery->notes,
+                            'route' => [
+                                'id' => $delivery->original_route_id,
+                                'name' => $delivery->deliveryRoute->name,
+                                'status' => $delivery->deliveryRoute->status,
+                            ],
+                            'driver' => [
+                                'id' => $delivery->original_driver_id,
+                                'name' => $delivery->deliveryDriver->name,
+                                'phone' => $delivery->deliveryDriver->phone,
+                                'email' => $delivery->deliveryDriver->email,
+                            ],
+                            'truck' => $delivery->deliveryTruck ? [
+                                'id' => $delivery->deliveryTruck->id,
+                                'plate' => $delivery->deliveryTruck->plate,
+                                'model' => $delivery->deliveryTruck->model,
+                                'carrocerias' => $delivery->deliveryTruck->carrocerias->map(function($carroceria) {
+                                    return [
+                                        'id' => $carroceria->id,
+                                        'name' => $carroceria->name,
+                                        'type' => $carroceria->type
+                                    ];
+                                })
+                            ] : null,
+                            'current_stop' => $delivery->currentStop ? [
+                                'id' => $delivery->currentStop->id,
+                                'name' => $delivery->currentStop->deliveryRouteStop->name,
+                                'order' => $delivery->currentStop->order,
+                                'latitude' => $delivery->currentStop->deliveryRouteStop->latitude,
+                                'longitude' => $delivery->currentStop->deliveryRouteStop->longitude,
                                 'address' => [
-                                    'street' => $delivery->stop->street,
-                                    'number' => $delivery->stop->number,
-                                    'city' => $delivery->stop->city,
-                                    'state' => $delivery->stop->state,
-                                    'cep' => $delivery->stop->cep,
+                                    'street' => $delivery->currentStop->deliveryRouteStop->street,
+                                    'number' => $delivery->currentStop->deliveryRouteStop->number,
+                                    'city' => $delivery->currentStop->deliveryRouteStop->city,
+                                    'state' => $delivery->currentStop->deliveryRouteStop->state,
+                                    'cep' => $delivery->currentStop->deliveryRouteStop->cep,
                                 ]
                             ] : null
                         ];

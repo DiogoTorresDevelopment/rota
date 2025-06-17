@@ -27,8 +27,8 @@ Route::post('/password/forgot', [AuthController::class, 'apiForgotPassword'])->n
 Route::post('/password/reset', [AuthController::class, 'apiResetPassword'])->name('api.password.reset');
 Route::get('/check-auth', [AuthController::class, 'checkAuth'])->name('api.check.auth');
 
-// Rotas protegidas para motoristas
-Route::middleware('driver.api')->group(function () {
+// Rotas protegidas para motoristas - Sem throttle
+Route::middleware(['driver.api'])->group(function () {
     // Informações do motorista
     Route::get('/driver/profile', [DriverController::class, 'apiProfile']);
     Route::put('/driver/profile', [DriverController::class, 'apiUpdateProfile']);
@@ -42,6 +42,7 @@ Route::middleware('driver.api')->group(function () {
     Route::get('/driver/deliveries/{delivery}', [DeliveryController::class, 'apiDriverDeliveryDetails']);
     Route::post('/driver/deliveries/{delivery}/complete', [DeliveryController::class, 'apiCompleteDelivery']);
     Route::post('/driver/deliveries/{delivery}/complete-stop', [DeliveryController::class, 'apiCompleteStop']);
+    Route::post('/driver/deliveries/{delivery}/cancel', [DeliveryController::class, 'apiCancelDelivery']);
     Route::post('/driver/upload-photo', [DeliveryController::class, 'apiUploadPhoto']);
     Route::delete('/driver/photos/{photo}', [DeliveryController::class, 'apiDeletePhoto']);
 

@@ -4,6 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Cache\RateLimiting\Limit;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -32,6 +35,17 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // IMPORTANTE: redefinindo o limitador "api"
+        RateLimiter::for('api', function (Request $request) {
+            // Em ambiente de desenvolvimento, não há limite
+            if (app()->environment('local', 'development')) {
+                return Limit::none();
+            }
+            
+            // Em produção: 300 requisições por minuto por IP
+            return Limit::perMinute(300)->by($request->ip());
+        });
+
         parent::boot();
 
         if (app()->runningInConsole() && app()->environment('local')) {
@@ -78,8 +92,15 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function mapApiRoutes()
     {
+        $middleware = ['api'];
+        
+        // Remove throttle em ambiente de desenvolvimento
+        if (app()->environment('local', 'development')) {
+            $middleware = array_diff($middleware, ['throttle:api']);
+        }
+
         Route::prefix('api')
-             ->middleware('api')
+             ->middleware($middleware)
              ->namespace($this->namespace)
              ->group(base_path('routes/api.php'));
     }
