@@ -47,7 +47,7 @@ class RouteController extends Controller
     public function store(Request $request)
     {
         $step = $request->input('step', 1);
-        
+
         try {
             switch ($step) {
                 case 1:
@@ -81,7 +81,7 @@ class RouteController extends Controller
                         'origin.number' => 'required|string',
                         'origin.latitude' => 'nullable|numeric|between:-90,90',
                         'origin.longitude' => 'nullable|numeric|between:-180,180',
-                        
+
                         'destination.name' => 'required|string|max:255',
                         'destination.cep' => 'required|string',
                         'destination.state' => 'required|string',
@@ -93,7 +93,7 @@ class RouteController extends Controller
                     ]);
 
                     $route = Route::findOrFail($request->route_id);
-                    
+
                     // Salvar endereço de origem
                     $route->addresses()->updateOrCreate(
                         ['type' => 'origin'],
@@ -216,11 +216,11 @@ class RouteController extends Controller
     {
         try {
             \Log::info('Iniciando exclusão da rota: ' . $route->id);
-            
+
             $this->routeService->delete($route);
-            
+
             \Log::info('Rota excluída com sucesso: ' . $route->id);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Rota excluída com sucesso'
@@ -229,7 +229,7 @@ class RouteController extends Controller
             \Log::error('Erro ao excluir rota: ' . $e->getMessage());
             \Log::error('Stack trace: ' . $e->getTraceAsString());
             \Log::error('File: ' . $e->getFile() . ' Line: ' . $e->getLine());
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao excluir: ' . $e->getMessage()
@@ -241,7 +241,7 @@ class RouteController extends Controller
     {
         try {
             $optimizedRoute = $this->routeService->optimizeRouteStops($route);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Rota otimizada com sucesso!',
@@ -280,7 +280,7 @@ class RouteController extends Controller
                     $query->where('status', 'in_progress');
                 }
             ])
-            ->orderBy('created_at', 'desc') 
+            ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($route) {
                 return [
@@ -443,4 +443,4 @@ class RouteController extends Controller
         $route->load(['addresses', 'stops', 'deliveries']);
         return view('routes.show', compact('route'));
     }
-} 
+}

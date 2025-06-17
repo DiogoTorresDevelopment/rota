@@ -22,20 +22,29 @@ class DashboardController extends Controller
             })
             ->get();
 
-            $recentDeliveries = Delivery::with(['route.driver'])
-                ->orderBy('created_at', 'desc')
-                ->take(10)
-                ->get()
-                ->map(function($delivery) {
-                    // Define o progresso baseado no status
-                    $delivery->progress = match($delivery->status) {
-                        'completed' => 100,
-                        'cancelled' => 0,
-                        'in_progress' => $this->calculateDeliveryProgress($delivery),
-                        default => 0
-                    };
-                    return $delivery;
-                });
+            $recentDeliveries = Delivery::with([
+                'deliveryRoute',
+                'deliveryDriver',
+                'deliveryStops' => function($query) {
+                    $query->orderBy('order');
+                }
+            ])
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function($delivery) {
+                // Calcula o progresso baseado nas paradas completadas
+                $totalStops = $delivery->deliveryStops->count();
+                $completedStops = $delivery->deliveryStops->where('status', 'completed')->count();
+                
+                $delivery->progress = match($delivery->status) {
+                    'completed' => 100,
+                    'cancelled' => 0,
+                    'in_progress' => $totalStops > 0 ? round(($completedStops / $totalStops) * 100) : 0,
+                    default => 0
+                };
+                return $delivery;
+            });
 
             return view('dashboard', [
                 'totalRoutes' => Route::count(),

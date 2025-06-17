@@ -151,40 +151,57 @@ class DeliveryController extends Controller
     {
         try {
             $driver = $request->user();
-            
-            if (!$driver) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Perfil de motorista não encontrado'
-                ], 404);
-            }
+        
+        if (!$driver) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Perfil de motorista não encontrado'
+            ], 404);
+        }
 
-            $deliveries = Delivery::where('original_driver_id', $driver->id)
-                ->with([
-                    'deliveryRoute',
-                    'deliveryStops.deliveryRouteStop',
+        $deliveries = Delivery::where('original_driver_id', $driver->id)
+            ->with([
+                'deliveryRoute',
+                    'deliveryDriver',
                     'deliveryTruck',
                     'deliveryCarrocerias.carroceria',
-                    'currentStop.deliveryRouteStop'
-                ])
-                ->orderBy('created_at', 'desc')
-                ->get()
-                ->map(function ($delivery) {
-                    return [
-                        'id' => $delivery->id,
-                        'status' => $delivery->status,
-                        'created_at' => $delivery->created_at,
-                        'completed_at' => $delivery->end_date,
-                        'notes' => $delivery->notes,
-                        'route' => [
-                            'id' => $delivery->original_route_id,
-                            'name' => $delivery->deliveryRoute->name,
-                            'status' => $delivery->deliveryRoute->status,
+                    'deliveryStops.deliveryRouteStop',
+                    'currentStop.deliveryRouteStop',
+                    'currentStop.photos'
+            ])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($delivery) {
+                return [
+                    'id' => $delivery->id,
+                    'status' => $delivery->status,
+                    'created_at' => $delivery->created_at,
+                    'completed_at' => $delivery->end_date,
+                    'notes' => $delivery->notes,
+                    'route' => [
+                        'id' => $delivery->original_route_id,
+                        'name' => $delivery->deliveryRoute->name,
+                        'status' => $delivery->deliveryRoute->status,
+                    ],
+                        'driver' => [
+                            'id' => $delivery->original_driver_id,
+                            'name' => $delivery->deliveryDriver->name,
+                            'phone' => $delivery->deliveryDriver->phone,
+                            'email' => $delivery->deliveryDriver->email,
                         ],
                         'truck' => $delivery->deliveryTruck ? [
                             'id' => $delivery->deliveryTruck->id,
-                            'plate' => $delivery->deliveryTruck->plate,
-                            'model' => $delivery->deliveryTruck->model,
+                            'plate' => $delivery->deliveryTruck->placa,
+                            'model' => $delivery->deliveryTruck->modelo,
+                            'brand' => $delivery->deliveryTruck->marca,
+                            'year' => $delivery->deliveryTruck->ano,
+                            'color' => $delivery->deliveryTruck->cor,
+                            'fuel_type' => $delivery->deliveryTruck->tipo_combustivel,
+                            'load_capacity' => $delivery->deliveryTruck->carga_suportada,
+                            'chassis' => $delivery->deliveryTruck->chassi,
+                            'mileage' => $delivery->deliveryTruck->quilometragem,
+                            'last_review' => $delivery->deliveryTruck->ultima_revisao,
+                            'status' => $delivery->deliveryTruck->status,
                             'carrocerias' => $delivery->deliveryCarrocerias->map(function($deliveryCarroceria) {
                                 return [
                                     'id' => $deliveryCarroceria->carroceria->id,
@@ -197,29 +214,63 @@ class DeliveryController extends Controller
                                 ];
                             })
                         ] : null,
-                        'current_stop' => $delivery->currentStop ? [
-                            'id' => $delivery->currentStop->id,
-                            'name' => $delivery->currentStop->deliveryRouteStop->name,
-                            'order' => $delivery->currentStop->order,
-                            'latitude' => $delivery->currentStop->deliveryRouteStop->latitude,
-                            'longitude' => $delivery->currentStop->deliveryRouteStop->longitude,
-                            'address' => [
-                                'street' => $delivery->currentStop->deliveryRouteStop->street,
-                                'number' => $delivery->currentStop->deliveryRouteStop->number,
-                                'city' => $delivery->currentStop->deliveryRouteStop->city,
-                                'state' => $delivery->currentStop->deliveryRouteStop->state,
-                                'cep' => $delivery->currentStop->deliveryRouteStop->cep,
-                            ]
-                        ] : null
-                    ];
-                });
+                    'current_stop' => $delivery->currentStop ? [
+                        'id' => $delivery->currentStop->id,
+                        'name' => $delivery->currentStop->deliveryRouteStop->name,
+                        'order' => $delivery->currentStop->order,
+                            'status' => $delivery->currentStop->status,
+                            'completed_at' => $delivery->currentStop->completed_at,
+                            'photos' => $delivery->currentStop->photos->map(function($photo) {
+                                return [
+                                    'id' => $photo->id,
+                                    'url' => $photo->url,
+                                    'created_at' => $photo->created_at
+                                ];
+                            }),
+                        'latitude' => $delivery->currentStop->deliveryRouteStop->latitude,
+                        'longitude' => $delivery->currentStop->deliveryRouteStop->longitude,
+                        'address' => [
+                            'street' => $delivery->currentStop->deliveryRouteStop->street,
+                            'number' => $delivery->currentStop->deliveryRouteStop->number,
+                            'city' => $delivery->currentStop->deliveryRouteStop->city,
+                            'state' => $delivery->currentStop->deliveryRouteStop->state,
+                            'cep' => $delivery->currentStop->deliveryRouteStop->cep,
+                        ]
+                        ] : null,
+                        'stops' => $delivery->deliveryStops->map(function ($stop) {
+                            return [
+                                'id' => $stop->id,
+                                'name' => $stop->deliveryRouteStop->name,
+                                'order' => $stop->order,
+                                'status' => $stop->status,
+                                'completed_at' => $stop->completed_at,
+                                'photos' => $stop->photos->map(function($photo) {
+                                    return [
+                                        'id' => $photo->id,
+                                        'url' => $photo->url,
+                                        'created_at' => $photo->created_at
+                                    ];
+                                }),
+                                'latitude' => $stop->deliveryRouteStop->latitude,
+                                'longitude' => $stop->deliveryRouteStop->longitude,
+                                'address' => [
+                                    'street' => $stop->deliveryRouteStop->street,
+                                    'number' => $stop->deliveryRouteStop->number,
+                                    'city' => $stop->deliveryRouteStop->city,
+                                    'state' => $stop->deliveryRouteStop->state,
+                                    'cep' => $stop->deliveryRouteStop->cep,
+                                ]
+                            ];
+                        })
+                ];
+            });
 
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'deliveries' => $deliveries
-                ]
-            ]);
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'deliveries' => $deliveries
+            ]
+        ]);
         } catch (\Exception $e) {
             \Log::error('Erro ao buscar entregas do motorista', [
                 'error' => $e->getMessage(),
@@ -251,7 +302,9 @@ class DeliveryController extends Controller
                 'deliveryTruck',
                 'deliveryCarrocerias.carroceria',
                 'deliveryStops.deliveryRouteStop',
-                'currentStop.deliveryRouteStop'
+                'currentStop.deliveryRouteStop',
+                'currentStop.photos',
+                'deliveryStops.photos'
             ]);
 
             return response()->json([
@@ -276,8 +329,17 @@ class DeliveryController extends Controller
                         ],
                         'truck' => $delivery->deliveryTruck ? [
                             'id' => $delivery->deliveryTruck->id,
-                            'plate' => $delivery->deliveryTruck->plate,
-                            'model' => $delivery->deliveryTruck->model,
+                            'plate' => $delivery->deliveryTruck->placa,
+                            'model' => $delivery->deliveryTruck->modelo,
+                            'brand' => $delivery->deliveryTruck->marca,
+                            'year' => $delivery->deliveryTruck->ano,
+                            'color' => $delivery->deliveryTruck->cor,
+                            'fuel_type' => $delivery->deliveryTruck->tipo_combustivel,
+                            'load_capacity' => $delivery->deliveryTruck->carga_suportada,
+                            'chassis' => $delivery->deliveryTruck->chassi,
+                            'mileage' => $delivery->deliveryTruck->quilometragem,
+                            'last_review' => $delivery->deliveryTruck->ultima_revisao,
+                            'status' => $delivery->deliveryTruck->status,
                             'carrocerias' => $delivery->deliveryCarrocerias->map(function($deliveryCarroceria) {
                                 return [
                                     'id' => $deliveryCarroceria->carroceria->id,
@@ -294,6 +356,15 @@ class DeliveryController extends Controller
                             'id' => $delivery->currentStop->id,
                             'name' => $delivery->currentStop->deliveryRouteStop->name,
                             'order' => $delivery->currentStop->order,
+                            'status' => $delivery->currentStop->status,
+                            'completed_at' => $delivery->currentStop->completed_at,
+                            'photos' => $delivery->currentStop->photos->map(function($photo) {
+                                return [
+                                    'id' => $photo->id,
+                                    'url' => $photo->url,
+                                    'created_at' => $photo->created_at
+                                ];
+                            }),
                             'latitude' => $delivery->currentStop->deliveryRouteStop->latitude,
                             'longitude' => $delivery->currentStop->deliveryRouteStop->longitude,
                             'address' => [
@@ -311,6 +382,13 @@ class DeliveryController extends Controller
                                 'order' => $stop->order,
                                 'status' => $stop->status,
                                 'completed_at' => $stop->completed_at,
+                                'photos' => $stop->photos->map(function($photo) {
+                                    return [
+                                        'id' => $photo->id,
+                                        'url' => $photo->url,
+                                        'created_at' => $photo->created_at
+                                    ];
+                                }),
                                 'latitude' => $stop->deliveryRouteStop->latitude,
                                 'longitude' => $stop->deliveryRouteStop->longitude,
                                 'address' => [
@@ -357,26 +435,24 @@ class DeliveryController extends Controller
                 ], 400);
             }
 
-            $validated = $request->validate([
-                'notes' => 'nullable|string|max:1000'
-            ]);
+            DB::beginTransaction();
 
+            // Finaliza a entrega
             $delivery = $this->deliveryService->completeDelivery($delivery);
 
-            if ($validated['notes']) {
-                $delivery->update([
-                    'notes' => $validated['notes']
-                ]);
-            }
-
+            // Carrega todos os relacionamentos necessários
             $delivery->load([
                 'deliveryRoute',
                 'deliveryDriver',
                 'deliveryTruck',
                 'deliveryCarrocerias.carroceria',
                 'deliveryStops.deliveryRouteStop',
-                'currentStop.deliveryRouteStop'
+                'currentStop.deliveryRouteStop',
+                'currentStop.photos',
+                'deliveryStops.photos'
             ]);
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -387,7 +463,6 @@ class DeliveryController extends Controller
                         'status' => $delivery->status,
                         'created_at' => $delivery->created_at,
                         'completed_at' => $delivery->end_date,
-                        'notes' => $delivery->notes,
                         'route' => [
                             'id' => $delivery->original_route_id,
                             'name' => $delivery->deliveryRoute->name,
@@ -401,8 +476,17 @@ class DeliveryController extends Controller
                         ],
                         'truck' => $delivery->deliveryTruck ? [
                             'id' => $delivery->deliveryTruck->id,
-                            'plate' => $delivery->deliveryTruck->plate,
-                            'model' => $delivery->deliveryTruck->model,
+                            'plate' => $delivery->deliveryTruck->placa,
+                            'model' => $delivery->deliveryTruck->modelo,
+                            'brand' => $delivery->deliveryTruck->marca,
+                            'year' => $delivery->deliveryTruck->ano,
+                            'color' => $delivery->deliveryTruck->cor,
+                            'fuel_type' => $delivery->deliveryTruck->tipo_combustivel,
+                            'load_capacity' => $delivery->deliveryTruck->carga_suportada,
+                            'chassis' => $delivery->deliveryTruck->chassi,
+                            'mileage' => $delivery->deliveryTruck->quilometragem,
+                            'last_review' => $delivery->deliveryTruck->ultima_revisao,
+                            'status' => $delivery->deliveryTruck->status,
                             'carrocerias' => $delivery->deliveryCarrocerias->map(function($deliveryCarroceria) {
                                 return [
                                     'id' => $deliveryCarroceria->carroceria->id,
@@ -414,6 +498,29 @@ class DeliveryController extends Controller
                                     'peso_suportado' => $deliveryCarroceria->peso_suportado
                                 ];
                             })
+                        ] : null,
+                        'current_stop' => $delivery->currentStop ? [
+                            'id' => $delivery->currentStop->id,
+                            'name' => $delivery->currentStop->deliveryRouteStop->name,
+                            'order' => $delivery->currentStop->order,
+                            'status' => $delivery->currentStop->status,
+                            'completed_at' => $delivery->currentStop->completed_at,
+                            'photos' => $delivery->currentStop->photos->map(function($photo) {
+                                return [
+                                    'id' => $photo->id,
+                                    'url' => $photo->url,
+                                    'created_at' => $photo->created_at
+                                ];
+                            }),
+                            'latitude' => $delivery->currentStop->deliveryRouteStop->latitude,
+                            'longitude' => $delivery->currentStop->deliveryRouteStop->longitude,
+                            'address' => [
+                                'street' => $delivery->currentStop->deliveryRouteStop->street,
+                                'number' => $delivery->currentStop->deliveryRouteStop->number,
+                                'city' => $delivery->currentStop->deliveryRouteStop->city,
+                                'state' => $delivery->currentStop->deliveryRouteStop->state,
+                                'cep' => $delivery->currentStop->deliveryRouteStop->cep,
+                            ]
                         ] : null,
                         'stops' => $delivery->deliveryStops->map(function ($stop) {
                             return [
@@ -444,6 +551,7 @@ class DeliveryController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Erro ao finalizar entrega', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
@@ -487,7 +595,7 @@ class DeliveryController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Entrega cancelada com sucesso',
-            'delivery' => $delivery->fresh()
+                'delivery' => $delivery->fresh()
         ]);
     }
 
@@ -568,8 +676,12 @@ class DeliveryController extends Controller
                 'photos.*' => 'image|max:2048'
             ]);
 
+            DB::beginTransaction();
+
+            // Completa a parada atual
             $delivery = $this->deliveryService->completeCurrentStop($delivery);
 
+            // Processa as fotos se houver
             if ($request->hasFile('photos')) {
                 foreach ($request->file('photos') as $photo) {
                     $path = $photo->store('stop-proofs', 'public');
@@ -580,6 +692,7 @@ class DeliveryController extends Controller
                 }
             }
 
+            // Carrega todos os relacionamentos necessários
             $delivery->load([
                 'deliveryRoute',
                 'deliveryDriver',
@@ -587,8 +700,11 @@ class DeliveryController extends Controller
                 'deliveryCarrocerias.carroceria',
                 'deliveryStops.deliveryRouteStop',
                 'currentStop.deliveryRouteStop',
-                'currentStop.photos'
+                'currentStop.photos',
+                'deliveryStops.photos'
             ]);
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
@@ -613,8 +729,17 @@ class DeliveryController extends Controller
                         ],
                         'truck' => $delivery->deliveryTruck ? [
                             'id' => $delivery->deliveryTruck->id,
-                            'plate' => $delivery->deliveryTruck->plate,
-                            'model' => $delivery->deliveryTruck->model,
+                            'plate' => $delivery->deliveryTruck->placa,
+                            'model' => $delivery->deliveryTruck->modelo,
+                            'brand' => $delivery->deliveryTruck->marca,
+                            'year' => $delivery->deliveryTruck->ano,
+                            'color' => $delivery->deliveryTruck->cor,
+                            'fuel_type' => $delivery->deliveryTruck->tipo_combustivel,
+                            'load_capacity' => $delivery->deliveryTruck->carga_suportada,
+                            'chassis' => $delivery->deliveryTruck->chassi,
+                            'mileage' => $delivery->deliveryTruck->quilometragem,
+                            'last_review' => $delivery->deliveryTruck->ultima_revisao,
+                            'status' => $delivery->deliveryTruck->status,
                             'carrocerias' => $delivery->deliveryCarrocerias->map(function($deliveryCarroceria) {
                                 return [
                                     'id' => $deliveryCarroceria->carroceria->id,
@@ -679,6 +804,7 @@ class DeliveryController extends Controller
                 ]
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Erro ao concluir parada', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
