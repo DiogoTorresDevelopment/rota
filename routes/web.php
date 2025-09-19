@@ -66,12 +66,9 @@ Route::middleware(['web', 'auth'])->group(function () {
         Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
     });
 
-    Route::resource('drivers', DriverController::class);
-
-    // Adicione estas novas rotas para documentos
-    Route::post('drivers/documents', [DriverController::class, 'storeDocument'])->name('drivers.documents.store');
-    Route::get('drivers/{driver}/documents', [DriverController::class, 'getDocuments'])->name('drivers.documents.index');
-    Route::delete('drivers/documents/{document}', [DriverController::class, 'deleteDocument'])->name('drivers.documents.destroy');
+    // Note: Drivers routes are now handled by the module system
+    // Route::resource('drivers', DriverController::class); // Moved to modules/drivers/web.php
+    // Driver document routes also moved to module system
 
     Route::group(['prefix' => 'email'], function(){
         Route::get('inbox', function () { return view('pages.email.inbox'); });

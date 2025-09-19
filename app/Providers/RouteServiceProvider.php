@@ -66,6 +66,8 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->mapWebRoutes();
 
+        $this->mapModuleRoutes();
+
         //
     }
 
@@ -103,5 +105,23 @@ class RouteServiceProvider extends ServiceProvider
              ->middleware($middleware)
              ->namespace($this->namespace)
              ->group(base_path('routes/api.php'));
+    }
+
+    /**
+     * Define the module routes for the application.
+     *
+     * @return void
+     */
+    protected function mapModuleRoutes()
+    {
+        // Drivers module routes
+        if (file_exists(base_path('routes/modules/drivers/web.php'))) {
+            Route::group([], base_path('routes/modules/drivers/web.php'));
+        }
+
+        // Passengers module routes
+        if (file_exists(base_path('routes/modules/passengers/web.php'))) {
+            Route::group([], base_path('routes/modules/passengers/web.php'));
+        }
     }
 }
